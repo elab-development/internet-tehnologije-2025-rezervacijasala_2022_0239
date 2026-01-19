@@ -1,0 +1,67 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/auth";
+
+/**
+ * GET /api/halls
+ * Svi mogu da vide sale
+ */
+export async function GET() {
+  try {
+    const halls = await prisma.hall.findMany({
+      where: { isActive: true },
+    });
+
+    return NextResponse.json(halls);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to fetch halls" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/halls
+ * Samo MANAGER ili ADMIN mogu da dodaju salu
+ */
+export async function POST(req: Request) {
+  // 🔐 ROLE CHECK (OVO JE NOVO)
+  const roleCheck = requireRole("MANAGER", req);
+  if (roleCheck) return roleCheck;
+
+  try {
+    const body = await req.json();
+    const { name, description, capacity, pricePerEvent } = body;
+
+    if (!name || !description || !capacity || !pricePerEvent) {
+      return NextResponse.json(
+        { error: "Missing fields" },
+        { status: 400 }
+      );
+    }
+
+    const hall = await prisma.hall.create({
+      data: {
+        name,
+        description,
+        capacity: Number(capacity),
+        pricePerEvent: Number(pricePerEvent),
+        isActive: true,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        message: "Hall created",
+        hall,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to create hall" },
+      { status: 500 }
+    );
+  }
+}
