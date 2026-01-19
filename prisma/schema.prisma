@@ -1,0 +1,59 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String   @unique
+  passwordHash String
+  phone        String?
+  roleId       Int
+  role         Role     @relation(fields: [roleId], references: [id])
+  reservations Reservation[]
+  createdAt    DateTime @default(now())
+}
+
+model Hall {
+  id               Int               @id @default(autoincrement())
+  name             String
+  description      String
+  capacity         Int
+  pricePerEvent    Float
+  isActive         Boolean           @default(true)
+  reservations     Reservation[]
+  unavailableDates UnavailableDate[]
+}
+
+model Reservation {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  hallId         Int
+  user           User     @relation(fields: [userId], references: [id])
+  hall           Hall     @relation(fields: [hallId], references: [id])
+  startDateTime  DateTime
+  endDateTime    DateTime
+  numberOfGuests Int
+  status         String
+  createdAt      DateTime @default(now())
+}
+
+model UnavailableDate {
+  id     Int      @id @default(autoincrement())
+  hallId Int
+  hall   Hall     @relation(fields: [hallId], references: [id])
+  date   DateTime
+  reason String?
+}
