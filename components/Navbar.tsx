@@ -13,13 +13,15 @@ export default function Navbar() {
           alignItems: "center",
         }}
       >
-        <Link href="/">Početna</Link>
-        <Link href="/halls">Sale</Link>
-        <Link href="/about">O restoranu</Link>
+         <Link href="/">Početna</Link>
+         <Link href="/halls">Sale</Link>
+         <Link href="/about">O restoranu</Link>
 
-        <Link href="/login" style={{ marginLeft: "auto" }}>
-          Prijavi se
-        </Link>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+            <Link href="/login">Prijavi se</Link>
+            <Link href="/register">Registracija</Link>
+            <Link href="/profile">Profil</Link>
+          </div>
       </nav>
     </header>
   );
