@@ -2,35 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 
-export async function GET(
-  _req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  // ⬇️ KLJUČNA LINIJA
-  const { id } = await context.params;
-
-  const hallId = Number(id);
-
-  if (Number.isNaN(hallId)) {
-    return NextResponse.json(
-      { error: "Invalid hall id" },
-      { status: 400 }
-    );
-  }
-
-  const hall = await prisma.hall.findUnique({
-    where: { id: hallId },
-  });
-
-  if (!hall) {
-    return NextResponse.json(
-      { error: "Hall not found" },
-      { status: 404 }
-    );
-  }
-
-  return NextResponse.json(hall);
-}
+/**
+ * PUT /api/halls/{id}/status
+ * MANAGER / ADMIN
+ */
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
@@ -49,11 +24,11 @@ export async function PUT(
   }
 
   const body = await req.json();
-  const { name, description, capacity, pricePerEvent } = body;
+  const { isActive } = body;
 
-  if (!name || !description || !capacity || !pricePerEvent) {
+  if (typeof isActive !== "boolean") {
     return NextResponse.json(
-      { error: "Missing fields" },
+      { error: "isActive must be boolean" },
       { status: 400 }
     );
   }
@@ -71,16 +46,11 @@ export async function PUT(
 
   const updated = await prisma.hall.update({
     where: { id: hallId },
-    data: {
-      name,
-      description,
-      capacity: Number(capacity),
-      pricePerEvent: Number(pricePerEvent),
-    },
+    data: { isActive },
   });
 
   return NextResponse.json({
-    message: "Hall updated",
+    message: "Hall status updated",
     hall: updated,
   });
 }
