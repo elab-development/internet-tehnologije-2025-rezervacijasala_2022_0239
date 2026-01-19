@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "@/app/providers";
 
 export default function Navbar() {
+  const { user, logout } = useAuth();
+
   return (
     <header style={{ borderBottom: "1px solid #e5e7eb" }}>
       <nav
@@ -13,15 +18,27 @@ export default function Navbar() {
           alignItems: "center",
         }}
       >
-         <Link href="/">Početna</Link>
-         <Link href="/halls">Sale</Link>
-         <Link href="/about">O restoranu</Link>
+        <Link href="/">Početna</Link>
+        <Link href="/halls">Sale</Link>
+        <Link href="/about">O restoranu</Link>
 
-          <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
-            <Link href="/login">Prijavi se</Link>
-            <Link href="/register">Registracija</Link>
-            <Link href="/profile">Profil</Link>
-          </div>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+          {/* AKO NIJE ULOGOVANA */}
+          {!user && (
+            <>
+              <Link href="/login">Prijavi se</Link>
+              <Link href="/register">Registracija</Link>
+            </>
+          )}
+
+          {/* AKO JESTE ULOGOVANA */}
+          {user && (
+            <>
+              <Link href="/profile">Profil</Link>
+              <button onClick={logout}>Odjavi se</button>
+            </>
+          )}
+        </div>
       </nav>
     </header>
   );
