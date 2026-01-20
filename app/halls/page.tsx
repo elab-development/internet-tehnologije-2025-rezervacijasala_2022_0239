@@ -1,74 +1,63 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import HallCard from "../../components/HallCard";
-import Input from "../../components/Input";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import HallCard from "@/components/HallCard";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/lib/AuthContext";
 
 type Hall = {
   id: number;
   name: string;
   capacity: number;
-  price: number;
+  pricePerEvent: number;
   isActive: boolean;
 };
 
-const KEY = "mock_halls";
-
-const DEFAULT_HALLS: Hall[] = [
-  { id: 1, name: "Velika svečana sala", capacity: 300, price: 120, isActive: true },
-  { id: 2, name: "Mala sala", capacity: 80, price: 60, isActive: true },
-  { id: 3, name: "VIP sala", capacity: 150, price: 100, isActive: true },
-];
-
 export default function HallsPage() {
+  const { user } = useAuth();
   const [halls, setHalls] = useState<Hall[]>([]);
-  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const existing = localStorage.getItem(KEY);
-    if (!existing) {
-      localStorage.setItem(KEY, JSON.stringify(DEFAULT_HALLS));
-      setHalls(DEFAULT_HALLS);
-    } else {
-      setHalls(JSON.parse(existing));
-    }
-  }, []);
+    apiFetch("/api/halls", {}, user ? { user } : undefined)
+      .then((data) => {
+        setHalls(data);
+      })
+      .catch((err) => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [user]);
 
-  const filteredHalls = useMemo(() => {
-    return halls.filter(
-      (h) =>
-        h.isActive &&
-        h.name.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [halls, search]);
+  if (loading) {
+    return <p style={{ padding: 24 }}>Učitavanje sala...</p>;
+  }
+
+  if (error) {
+    return <p style={{ padding: 24 }}>{error}</p>;
+  }
 
   return (
     <main style={{ padding: 24, maxWidth: 1000, margin: "0 auto" }}>
       <h1>Sale</h1>
-
-      <Input
-        label="Pretraga"
-        value={search}
-        onChange={setSearch}
-        placeholder="Pretraži sale..."
-      />
 
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
           gap: 16,
-          marginTop: 20,
         }}
       >
-        {filteredHalls.map((hall) => (
-          <HallCard key={hall.id} hall={hall} />
+        {halls.map((hall) => (
+          <Link key={hall.id} href={`/halls/${hall.id}`}>
+            <HallCard hall={hall} />
+          </Link>
         ))}
       </div>
-
-      {filteredHalls.length === 0 && (
-        <p style={{ marginTop: 16 }}>Nema dostupnih sala.</p>
-      )}
     </main>
   );
 }

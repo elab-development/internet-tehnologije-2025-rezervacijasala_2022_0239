@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Button from "../../components/Button";
-import { useAuth } from "../providers";
+import { useAuth } from "@/lib/AuthContext";
 
 type Reservation = {
   id: number;

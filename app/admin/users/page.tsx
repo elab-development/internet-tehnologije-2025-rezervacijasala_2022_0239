@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "../../providers";
+import { useAuth } from "@/lib/AuthContext";
 import Button from "../../../components/Button";
 
 type Role = "USER" | "MANAGER" | "ADMIN";

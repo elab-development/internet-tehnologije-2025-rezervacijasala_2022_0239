@@ -3,42 +3,51 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import ReserveForm from "./ReserveForm";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/lib/AuthContext";
 
 type Hall = {
   id: number;
   name: string;
   capacity: number;
-  price: number;
+  pricePerEvent: number;
   isActive: boolean;
 };
-
-const KEY = "mock_halls";
 
 export default function HallDetailsPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params); // ✅ unwrapping Promise params
+  const { id } = use(params); // Next.js 14+ params
+  const { user } = useAuth();
 
   const [hall, setHall] = useState<Hall | null>(null);
-  const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const idNum = Number(id);
-    const halls: Hall[] = JSON.parse(localStorage.getItem(KEY) || "[]");
-    const found = halls.find((h) => h.id === idNum);
+      apiFetch(`/api/halls/${id}`, {}, user ? { user } : undefined)
+      .then((data) => {
+        setHall(data);
+      })
+      .catch((err) => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [id, user]);
 
-    if (!found) {
-      setNotFound(true);
-      return;
-    }
+  if (loading) {
+    return (
+      <main style={{ padding: 24 }}>
+        <p>Učitavanje...</p>
+      </main>
+    );
+  }
 
-    setNotFound(false);
-    setHall(found);
-  }, [id]);
-
-  if (notFound) {
+  if (error) {
     return (
       <main style={{ padding: 24 }}>
         <h1>Sala nije pronađena</h1>
@@ -48,11 +57,7 @@ export default function HallDetailsPage({
   }
 
   if (!hall) {
-    return (
-      <main style={{ padding: 24 }}>
-        <p>Učitavanje...</p>
-      </main>
-    );
+    return null;
   }
 
   return (
@@ -61,7 +66,7 @@ export default function HallDetailsPage({
 
       <h1>{hall.name}</h1>
       <p>Kapacitet: {hall.capacity}</p>
-      <p>Cijena: {hall.price} €</p>
+      <p>Cijena: {hall.pricePerEvent} €</p>
 
       <hr style={{ margin: "24px 0" }} />
 

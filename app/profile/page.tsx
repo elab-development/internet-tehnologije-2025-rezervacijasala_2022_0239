@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "../providers";
+import { useAuth } from "@/lib/AuthContext";
 import Button from "../../components/Button";
 
 export default function ProfilePage() {

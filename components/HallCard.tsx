@@ -4,8 +4,9 @@ type Hall = {
   id: number;
   name: string;
   capacity: number;
-  price: number;
+  pricePerEvent: number;
 };
+
 
 export default function HallCard({ hall }: { hall: Hall }) {
   return (
@@ -18,7 +19,7 @@ export default function HallCard({ hall }: { hall: Hall }) {
     >
       <h3>{hall.name}</h3>
       <p>Kapacitet: {hall.capacity}</p>
-      <p>Cijena: {hall.price} €</p>
+      <p>Cena: {hall.pricePerEvent} €</p>
 
       <Link href={`/halls/${hall.id}`}>Detalji</Link>
     </div>
