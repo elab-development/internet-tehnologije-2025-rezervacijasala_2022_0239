@@ -105,10 +105,11 @@ export async function GET() {
 
     return NextResponse.json(reservations);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch reservations" },
-      { status: 500 }
-    );
-  }
+  console.error("RESERVATION POST ERROR:", error);
+  return NextResponse.json(
+    { error: "Failed to create reservation" },
+    { status: 500 }
+  );
+}
 }
 

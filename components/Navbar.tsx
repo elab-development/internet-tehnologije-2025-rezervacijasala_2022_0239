@@ -28,12 +28,24 @@ export default function Navbar() {
             <>
               <Link href="/login">Prijavi se</Link>
               <Link href="/register">Registracija</Link>
+              
             </>
           )}
-
           {/* AKO JESTE ULOGOVANA */}
           {user && (
             <>
+              <Link href="/reservations">Moje rezervacije</Link>
+
+              {/* MANAGER ili ADMIN */}
+              {(user.role === "MANAGER" || user.role === "ADMIN") && (
+                <Link href="/manager/halls">Menadžer</Link>
+              )}
+
+              {/* SAMO ADMIN */}
+              {user.role === "ADMIN" && (
+                <Link href="/admin/users">Admin</Link>
+              )}
+
               <Link href="/profile">Profil</Link>
               <button onClick={logout}>Odjavi se</button>
             </>

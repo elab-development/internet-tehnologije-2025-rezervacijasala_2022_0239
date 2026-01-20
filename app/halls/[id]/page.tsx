@@ -1,36 +1,67 @@
-import ReserveForm from "./ReserveForm";
+"use client";
+
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import ReserveForm from "./ReserveForm";
 
-const halls = [
-  { id: 1, name: "Velika svečana sala", capacity: 300, pricePerHour: 120 },
-  { id: 2, name: "Mala sala", capacity: 80, pricePerHour: 60 },
-  { id: 3, name: "VIP sala", capacity: 150, pricePerHour: 100 },
-];
+type Hall = {
+  id: number;
+  name: string;
+  capacity: number;
+  price: number;
+  isActive: boolean;
+};
 
-export default async function HallDetailsPage({
+const KEY = "mock_halls";
+
+export default function HallDetailsPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; // ✅ OVO JE KLJUČ
+  const { id } = use(params); // ✅ unwrapping Promise params
 
-  const hall = halls.find((h) => String(h.id) === id);
+  const [hall, setHall] = useState<Hall | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    const idNum = Number(id);
+    const halls: Hall[] = JSON.parse(localStorage.getItem(KEY) || "[]");
+    const found = halls.find((h) => h.id === idNum);
+
+    if (!found) {
+      setNotFound(true);
+      return;
+    }
+
+    setNotFound(false);
+    setHall(found);
+  }, [id]);
+
+  if (notFound) {
+    return (
+      <main style={{ padding: 24 }}>
+        <h1>Sala nije pronađena</h1>
+        <Link href="/halls">Nazad na sale</Link>
+      </main>
+    );
+  }
 
   if (!hall) {
     return (
       <main style={{ padding: 24 }}>
-        <h1>Sala nije pronađena</h1>
-        <p>Traženi ID: {id}</p>
-        <Link href="/halls">Nazad na sale</Link>
+        <p>Učitavanje...</p>
       </main>
     );
   }
 
   return (
     <main style={{ padding: 24, maxWidth: 800, margin: "0 auto" }}>
+      <Link href="/halls">← Nazad</Link>
+
       <h1>{hall.name}</h1>
       <p>Kapacitet: {hall.capacity}</p>
-      <p>Cijena: {hall.pricePerHour} €/sat</p>
+      <p>Cijena: {hall.price} €</p>
 
       <hr style={{ margin: "24px 0" }} />
 
