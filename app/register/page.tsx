@@ -1,41 +1,60 @@
 "use client";
 
 import { useState } from "react";
-import Button from "../../components/Button";
-import Input from "../../components/Input";
+import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
+import Button from "@/components/Button";
+import Input from "@/components/Input";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setMessage(null);
+    setError(null);
 
-    if (firstName.trim().length < 2) {
-      setMessage("Unesi ime (bar 2 slova).");
-      return;
-    }
-    if (lastName.trim().length < 2) {
-      setMessage("Unesi prezime (bar 2 slova).");
-      return;
-    }
     if (!email.includes("@")) {
-      setMessage("Unesi ispravan email.");
+      setError("Unesi ispravan email.");
       return;
     }
     if (password.length < 6) {
-      setMessage("Lozinka mora imati bar 6 karaktera.");
+      setError("Lozinka mora imati bar 6 karaktera.");
       return;
     }
 
-    setMessage("Registracija je validna (sledeće povezujemo sa backendom).");
+    try {
+      setLoading(true);
+
+      await apiFetch("/api/auth", {
+        method: "POST",
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+        }),
+      });
+
+      setMessage("Uspešno ste se registrovali. Prijavite se.");
+      router.push("/login");
+    } catch (err: any) {
+      setError(err.message || "Greška pri registraciji");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 520, margin: "0 auto" }}>
+    <main style={{ padding: 24, maxWidth: 420, margin: "0 auto" }}>
       <h1>Registracija</h1>
 
       <form onSubmit={handleSubmit} style={{ display: "grid", gap: 14 }}>
@@ -43,32 +62,46 @@ export default function RegisterPage() {
           label="Ime"
           value={firstName}
           onChange={setFirstName}
-          placeholder="npr. Doris"
+          placeholder="Ime"
         />
+
         <Input
           label="Prezime"
           value={lastName}
           onChange={setLastName}
-          placeholder="npr. Šmulja"
+          placeholder="Prezime"
         />
+
         <Input
           label="Email"
           type="email"
           value={email}
           onChange={setEmail}
-          placeholder="npr. doris@gmail.com"
+          placeholder="email@test.com"
         />
+
         <Input
           label="Lozinka"
           type="password"
           value={password}
           onChange={setPassword}
-          placeholder="Unesi lozinku"
+          placeholder="minimum 6 karaktera"
         />
 
-        <Button type="submit">Napravi nalog</Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? "Registrujem..." : "Registruj se"}
+        </Button>
 
-        {message && <p style={{ marginTop: 6, fontSize: 14 }}>{message}</p>}
+        {message && (
+          <p style={{ marginTop: 6, fontSize: 14, color: "green" }}>
+            {message}
+          </p>
+        )}
+        {error && (
+          <p style={{ marginTop: 6, fontSize: 14, color: "red" }}>
+            {error}
+          </p>
+        )}
       </form>
     </main>
   );

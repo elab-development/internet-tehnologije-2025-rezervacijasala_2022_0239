@@ -53,10 +53,8 @@ export default function HallsPage() {
         }}
       >
         {halls.map((hall) => (
-          <Link key={hall.id} href={`/halls/${hall.id}`}>
-            <HallCard hall={hall} />
-          </Link>
-        ))}
+  <HallCard key={hall.id} hall={hall} />
+))}
       </div>
     </main>
   );

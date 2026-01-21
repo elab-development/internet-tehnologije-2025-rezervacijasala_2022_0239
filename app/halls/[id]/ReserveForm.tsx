@@ -1,104 +1,97 @@
 "use client";
 
 import { useState } from "react";
+import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
-import Button from "../../../components/Button";
-import Input from "../../../components/Input";
 
-type Props = {
-  hallId: number;
-};
-
-export default function ReserveForm({ hallId }: Props) {
+export default function ReserveForm({ hallId }: { hallId: number }) {
   const { user } = useAuth();
 
-  const [dateTime, setDateTime] = useState("");
-  const [guests, setGuests] = useState("");
-  const [note, setNote] = useState("");
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
+  const [numberOfGuests, setNumberOfGuests] = useState(1);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
-
-    // Validacije
-    if (!dateTime) {
-      setMessage("Izaberi datum i vrijeme.");
-      return;
-    }
-
-    const g = Number(guests);
-    if (!g || g < 1) {
-      setMessage("Unesi ispravan broj zvanica.");
-      return;
-    }
+    setError(null);
 
     if (!user) {
-      setMessage("Moraš biti ulogovana da bi napravila rezervaciju.");
+      setError("Morate biti ulogovani da biste rezervisali salu.");
       return;
     }
 
-    // Mock rezervacija
-    const reservation = {
-      id: Date.now(),
-      hallId,
-      dateTime,
-      numberOfGuests: g,
-      note,
-      status: "ACTIVE",
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      setLoading(true);
+    
+      await apiFetch(
+        "/api/reservations",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            userId: user.id,
+            hallId,
+            startDateTime,
+            endDateTime,
+            numberOfGuests,
+          }),
+        },
+        { user }
+      );
 
-    const STORAGE_KEY = "mock_reservations";
-    const existing = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) || "[]"
-    );
-
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify([reservation, ...existing])
-    );
-
-    setMessage("Rezervacija uspešno sačuvana ✅");
-
-    // Reset forme
-    setDateTime("");
-    setGuests("");
-    setNote("");
+      setMessage("Rezervacija uspešno kreirana!");
+      setStartDateTime("");
+      setEndDateTime("");
+      setNumberOfGuests(1);
+    } catch (err: any) {
+      setError(err.message || "Greška pri rezervaciji");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{ display: "grid", gap: 14, maxWidth: 520 }}
-    >
-      <Input
-        label="Datum i vrijeme"
-        type="datetime-local"
-        value={dateTime}
-        onChange={setDateTime}
-      />
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label>Početak</label>
+        <input
+          type="datetime-local"
+          value={startDateTime}
+          onChange={(e) => setStartDateTime(e.target.value)}
+          required
+        />
+      </div>
 
-      <Input
-        label="Broj zvanica"
-        type="number"
-        value={guests}
-        onChange={setGuests}
-        placeholder="npr. 120"
-      />
+      <div>
+        <label>Kraj</label>
+        <input
+          type="datetime-local"
+          value={endDateTime}
+          onChange={(e) => setEndDateTime(e.target.value)}
+          required
+        />
+      </div>
 
-      <Input
-        label="Napomena"
-        value={note}
-        onChange={setNote}
-        placeholder="npr. rođendan, posebni zahtevi..."
-      />
+      <div>
+        <label>Broj gostiju</label>
+        <input
+          type="number"
+          min={1}
+          value={numberOfGuests}
+          onChange={(e) => setNumberOfGuests(Number(e.target.value))}
+          required
+        />
+      </div>
 
-      <Button type="submit">Potvrdi rezervaciju</Button>
+      <button type="submit" disabled={loading}>
+        {loading ? "Rezervišem..." : "Rezerviši"}
+      </button>
 
-      {message && (
-        <p style={{ fontSize: 14, marginTop: 4 }}>{message}</p>
-      )}
+      {message && <p style={{ color: "green" }}>{message}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </form>
   );
 }
