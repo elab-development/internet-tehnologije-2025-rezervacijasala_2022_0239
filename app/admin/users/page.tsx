@@ -1,31 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { apiFetch } from "@/lib/api";
 import Button from "../../../components/Button";
 
-type Role = "USER" | "MANAGER" | "ADMIN";
-
-type MockUser = {
+type UserRow = {
   id: number;
   email: string;
-  role: Role;
+  role:
+    | "USER"
+    | "MANAGER"
+    | "ADMIN"
+    | {
+        name: "USER" | "MANAGER" | "ADMIN";
+      };
 };
 
 export default function AdminUsersPage() {
   const { user } = useAuth();
 
-  const [users, setUsers] = useState<MockUser[]>([
-    { id: 1, email: "user@test.com", role: "USER" },
-    { id: 2, email: "manager@test.com", role: "MANAGER" },
-    { id: 3, email: "admin@test.com", role: "ADMIN" },
-  ]);
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  function setRole(id: number, role: Role) {
-    setUsers(users.map((u) => (u.id === id ? { ...u, role } : u)));
+  /* ============================
+     FETCH USERS (backend)
+     ============================ */
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    if (user.role !== "ADMIN") {
+      setLoading(false);
+      return;
+    }
+
+    const authUser = {
+      id: user.id,
+      role: user.role,
+    };
+
+    apiFetch("/api/users", {}, { user: authUser })
+      .then(setUsers)
+      .catch(() => setMessage("Greška pri učitavanju korisnika"))
+      .finally(() => setLoading(false));
+  }, [user]);
+
+  /* ============================
+     GUARDOVI
+     ============================ */
+  if (!user) {
+    return null;
   }
 
-  if (!user || user.role !== "ADMIN") {
+  if (user.role !== "ADMIN") {
     return (
       <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
         <h1>Admin - Korisnici</h1>
@@ -34,43 +65,77 @@ export default function AdminUsersPage() {
     );
   }
 
+  const authUser = {
+    id: user.id,
+    role: user.role,
+  };
+
+  /* ============================
+     BRISANJE KORISNIKA
+     ============================ */
+  async function removeUser(id: number) {
+    if (!confirm("Da li si siguran da želiš da obrišeš korisnika?")) return;
+
+    try {
+      await apiFetch(
+        `/api/users/${id}`,
+        { method: "DELETE" },
+        { user: authUser }
+      );
+
+      setUsers(users.filter((u) => u.id !== id));
+    } catch {
+      setMessage("Greška pri brisanju korisnika");
+    }
+  }
+
+  if (loading) {
+    return <p style={{ padding: 24 }}>Učitavanje korisnika...</p>;
+  }
+
   return (
     <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
-      <h1>Admin - Korisnici (mock)</h1>
+      <h1>Admin - Upravljanje korisnicima</h1>
 
-      <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-        {users.map((u) => (
-          <div
-            key={u.id}
-            style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: 12,
-              padding: 14,
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 12,
-              alignItems: "center",
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 700 }}>{u.email}</div>
-              <div style={{ fontSize: 14, opacity: 0.8 }}>Uloga: {u.role}</div>
-            </div>
+      {message && <p style={{ fontSize: 14 }}>{message}</p>}
 
-            <div style={{ display: "flex", gap: 8 }}>
-              <Button type="button" onClick={() => setRole(u.id, "USER")}>
-                USER
-              </Button>
-              <Button type="button" onClick={() => setRole(u.id, "MANAGER")}>
-                MANAGER
-              </Button>
-              <Button type="button" onClick={() => setRole(u.id, "ADMIN")}>
-                ADMIN
-              </Button>
+      {users.length === 0 ? (
+        <p>Nema korisnika u sistemu.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+          {users.map((u) => (
+            <div
+              key={u.id}
+              style={{
+                border: "1px solid #e5e7eb",
+                borderRadius: 12,
+                padding: 14,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 700 }}>{u.email}</div>
+                <div style={{ fontSize: 14, opacity: 0.8 }}>
+                  Uloga:{" "}
+                  {typeof u.role === "string" ? u.role : u.role.name}
+                </div>
+              </div>
+
+              <div>
+                <Button
+                  type="button"
+                  onClick={() => removeUser(u.id)}
+                  disabled={u.id === user.id}
+                >
+                  Obriši
+                </Button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

@@ -18,43 +18,46 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  setMessage(null);
-  setError(null);
+    e.preventDefault();
+    setMessage(null);
+    setError(null);
 
-  if (!email.includes("@")) {
-    setError("Unesi ispravan email.");
-    return;
+    if (!email.includes("@")) {
+      setError("Unesi ispravan email.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Lozinka mora imati bar 6 karaktera.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const data = await apiFetch("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+
+      // ✅ PRAVILNO MAPIRANJE BACKEND RESPONSE-A
+      const u = data.user;
+
+      login({
+        id: u.id,
+        email: u.email,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        role: u.role,
+      });
+
+      setMessage("Uspešno ste prijavljeni.");
+      router.push("/halls");
+    } catch (err: any) {
+      setError(err.message || "Greška pri prijavi");
+    } finally {
+      setLoading(false);
+    }
   }
-  if (password.length < 6) {
-    setError("Lozinka mora imati bar 6 karaktera.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const data = await apiFetch("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
-
-    // ✅ KLJUČNA ISPRAVKA
-    login({
-      id: data.user.id,
-      email: data.user.email,
-      role: data.user.role,
-    });
-
-    setMessage("Uspešno ste prijavljeni.");
-    router.push("/halls");
-  } catch (err: any) {
-    setError(err.message || "Greška pri prijavi");
-  } finally {
-    setLoading(false);
-  }
-}
-
 
   return (
     <main style={{ padding: 24, maxWidth: 420, margin: "0 auto" }}>
@@ -66,7 +69,7 @@ export default function LoginPage() {
           type="email"
           value={email}
           onChange={setEmail}
-          placeholder="npr. doris@gmail.com"
+          placeholder="npr. luka@gmail.com"
         />
 
         <Input
