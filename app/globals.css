@@ -1,23 +1,24 @@
 @import "tailwindcss";
 
 /* =========================
-   RESTAURANT – LIGHT GRADIENT
+   RESTAURANT – LIGHT LILAC THEME (Ljubićica)
    ========================= */
 
 :root {
-  --bg-main: #fdf6f0;
-  --bg-soft: #fff1e6;
+  --bg-main: #fbf7ff;
+  --bg-soft: #f3edff;
   --card-bg: #ffffff;
 
-  --text-main: #2b1f1a;
-  --text-muted: #6a4a40;
+  --text-main: #251a2b;
+  --text-muted: #5a3d66;
 
-  --accent-primary: #8b2f23;    /* bordo vino */
-  --accent-secondary: #c97c5d;  /* topla terakota */
-  --accent-gold: #e0a96d;       /* zlatni akcent */
-  --accent-light: #f3cbb8;
+  /* Ljubičica palette */
+  --accent-primary: #6a2c91;    /* duboka ljubičasta */
+  --accent-secondary: #a855f7;  /* lila */
+  --accent-gold: #c4b5fd;       /* soft lavender (za focus) */
+  --accent-light: #efe6ff;
 
-  --border-color: rgba(43, 31, 26, 0.15);
+  --border-color: rgba(37, 26, 43, 0.14);
 }
 
 /* =========================
@@ -28,18 +29,18 @@ body {
   background:
     radial-gradient(
       900px 600px at top left,
-      rgba(224, 169, 109, 0.25),
+      rgba(196, 181, 253, 0.30),
       transparent 60%
     ),
     radial-gradient(
       800px 600px at bottom right,
-      rgba(201, 124, 93, 0.22),
+      rgba(168, 85, 247, 0.18),
       transparent 55%
     ),
     linear-gradient(
       180deg,
-      #fffaf6 0%,
-      #fdf6f0 100%
+      #fffdff 0%,
+      var(--bg-main) 100%
     );
   color: var(--text-main);
   font-family: "Georgia", "Times New Roman", serif;
@@ -55,17 +56,10 @@ h1, h2, h3 {
   letter-spacing: 0.4px;
 }
 
-h1 {
-  font-size: 2.8rem;
-}
+h1 { font-size: 2.8rem; }
+h2 { font-size: 2rem; }
 
-h2 {
-  font-size: 2rem;
-}
-
-p {
-  color: var(--text-muted);
-}
+p { color: var(--text-muted); }
 
 /* =========================
    LINKS
@@ -89,13 +83,13 @@ a:hover {
     linear-gradient(
       180deg,
       #ffffff 0%,
-      #fff7f2 100%
+      #fbf6ff 100%
     );
   border-radius: 20px;
   padding: 22px;
   border: 1px solid var(--border-color);
   box-shadow:
-    0 20px 45px rgba(43, 31, 26, 0.12);
+    0 20px 45px rgba(37, 26, 43, 0.12);
   transition: transform 0.25s ease,
               box-shadow 0.25s ease;
 }
@@ -103,7 +97,7 @@ a:hover {
 .card:hover {
   transform: translateY(-6px);
   box-shadow:
-    0 32px 70px rgba(43, 31, 26, 0.18);
+    0 32px 70px rgba(37, 26, 43, 0.18);
 }
 
 /* =========================
@@ -120,7 +114,8 @@ input, textarea, select {
 
 input:focus, textarea:focus {
   outline: none;
-  border-color: var(--accent-gold);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.18);
 }
 
 /* =========================
@@ -142,7 +137,7 @@ button {
   border: none;
   cursor: pointer;
   box-shadow:
-    0 14px 30px rgba(139, 47, 35, 0.35);
+    0 14px 30px rgba(106, 44, 145, 0.30);
 }
 
 button:hover {
@@ -158,5 +153,28 @@ button:hover {
   font-weight: 700;
   color: white;
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  box-shadow: 0 10px 22px rgba(139, 47, 35, 0.25);
+  box-shadow: 0 10px 22px rgba(106, 44, 145, 0.22);
+}
+
+.nav-btn {
+  /* ista visina kao linkovi (da ne "iskače") */
+  padding: 8px 14px;
+  border-radius: 12px;
+
+  /* koristi tvoju ljubičastu temu */
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: #fff;
+
+  border: 1px solid var(--border-color);
+  font-weight: 700;
+  cursor: pointer;
+
+  /* da ne bude preveliko u navbaru */
+  font-size: 14px;
+  line-height: 1;
+}
+
+.nav-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }

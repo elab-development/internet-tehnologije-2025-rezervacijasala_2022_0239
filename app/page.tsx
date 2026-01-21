@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
@@ -58,21 +59,17 @@ export default function HomePage() {
         </div>
 
         {/* IMAGE */}
-        <div
+        <img
+          src="/images/restaurant/logo.png"
+          alt="Naš restoran"
           style={{
+            width: "100%",
+            height: 280,
+            objectFit: "cover",
             borderRadius: 18,
-            minHeight: 240,
-            background:
-              "linear-gradient(135deg, rgba(201,124,93,0.25), rgba(224,169,109,0.25))",
             border: "1px solid var(--border-color)",
-            display: "grid",
-            placeItems: "center",
-            fontWeight: 700,
-            color: "var(--text-main)",
           }}
-        >
-          Slika restorana (placeholder)
-        </div>
+        />
       </section>
 
       {/* FEATURES */}

@@ -63,7 +63,18 @@ export default function HallDetailsPage({
   return (
     <main style={{ padding: 24, maxWidth: 800, margin: "0 auto" }}>
       <Link href="/halls">← Nazad</Link>
-
+      <img
+      src={`/images/halls/${hall.id}.jpg`}
+      alt={hall.name}
+      style={{
+        width: "100%",
+        height: 300,
+        objectFit: "cover",
+        borderRadius: 18,
+        margin: "16px 0",
+        border: "1px solid var(--border-color)",
+      }}
+    />
       <h1>{hall.name}</h1>
       <p>Kapacitet: {hall.capacity}</p>
       <p>Cijena: {hall.pricePerEvent} €</p>
@@ -71,7 +82,7 @@ export default function HallDetailsPage({
       <hr style={{ margin: "24px 0" }} />
 
       <h2>Rezerviši ovu salu</h2>
-      <ReserveForm hallId={hall.id} />
+      <ReserveForm hallId={hall.id} pricePerEvent={hall.pricePerEvent} />
     </main>
   );
 }
