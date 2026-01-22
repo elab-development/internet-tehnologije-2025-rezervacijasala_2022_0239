@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export function requireRole(
-  role: "USER" | "MANAGER" | "ADMIN",
+  roles: Array<"USER" | "MANAGER" | "ADMIN">,
   req: Request
 ) {
   const userRole = req.headers.get("x-user-role");
@@ -13,12 +13,12 @@ export function requireRole(
     );
   }
 
-  if (userRole !== role && userRole !== "ADMIN") {
+  if (!roles.includes(userRole as any)) {
     return NextResponse.json(
       { error: "Forbidden" },
       { status: 403 }
     );
   }
 
-  return null; // znači OK
+  return null;
 }

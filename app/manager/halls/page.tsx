@@ -44,7 +44,8 @@ export default function ManagerHallsPage() {
       role: user.role,
     };
 
-    apiFetch("/api/halls", {}, { user: authUser })
+   apiFetch("/api/halls/admin", {}, { user: authUser })
+
       .then(setHalls)
       .catch(() => setMessage("Greška pri učitavanju sala"))
       .finally(() => setLoading(false));
@@ -121,18 +122,33 @@ export default function ManagerHallsPage() {
      AKTIVACIJA / DEAKTIVACIJA
      ============================ */
   async function toggleActive(hall: Hall) {
-    try {
-      const updated = await apiFetch(
-        `/api/halls/${hall.id}/status`,
-        { method: "PUT" },
-        { user: authUser }
-      );
+  try {
+    const response = await apiFetch(
+      `/api/halls/${hall.id}/status`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          isActive: !hall.isActive,
+        }),
+      },
+      { user: authUser }
+    );
 
-      setHalls(halls.map((h) => (h.id === hall.id ? updated : h)));
-    } catch {
-      setMessage("Greška pri promeni statusa sale");
-    }
+    // backend vraća { message, hall }
+    setHalls(
+      halls.map((h) =>
+        h.id === hall.id ? response.hall : h
+      )
+    );
+  } catch (err) {
+    console.error(err);
+    setMessage("Greška pri promeni statusa sale");
   }
+}
+
 
   /* ============================
      BRISANJE SALE
@@ -203,18 +219,18 @@ export default function ManagerHallsPage() {
         ) : (
           <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
             {halls.map((h) => (
-              <div
-                key={h.id}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 12,
-                  padding: 14,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  alignItems: "center",
-                }}
-              >
+                <div
+                  key={h.id}
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 12,
+                    padding: 14,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    alignItems: "center",
+                  }}
+                >
                 <div>
                   <div style={{ fontWeight: 700 }}>
                     {h.name} {!h.isActive && "(neaktivna)"}

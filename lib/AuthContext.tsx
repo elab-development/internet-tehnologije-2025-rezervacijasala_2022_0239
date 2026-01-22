@@ -1,12 +1,10 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-export type User = {
+type User = {
   id: number;
   email: string;
-  firstName: string;
-  lastName: string;
   role: "USER" | "MANAGER" | "ADMIN";
 };
 
@@ -19,15 +17,27 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const STORAGE_KEY = "auth_user";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
+  // ✅ učitaj user-a iz localStorage pri startu aplikacije
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      setUser(JSON.parse(stored));
+    }
+  }, []);
+
   const login = (user: User) => {
     setUser(user);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (

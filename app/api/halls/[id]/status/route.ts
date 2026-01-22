@@ -10,7 +10,10 @@ export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const roleCheck = requireRole("MANAGER", req);
+  // ✅ DOZVOLI I MANAGER I ADMIN
+  const roleCheck =
+    requireRole(["MANAGER", "ADMIN"], req);
+
   if (roleCheck) return roleCheck;
 
   const { id } = await context.params;
