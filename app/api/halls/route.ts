@@ -27,14 +27,17 @@ export async function GET() {
  */
 export async function POST(req: Request) {
   // 🔐 ROLE CHECK (OVO JE NOVO)
-  const roleCheck = requireRole("MANAGER", req);
-  if (roleCheck) return roleCheck;
 
+  const roleCheck =
+  requireRole(["MANAGER", "ADMIN"], req);
+
+  if (roleCheck) return roleCheck;
+  
   try {
     const body = await req.json();
     const { name, description, capacity, pricePerEvent } = body;
 
-    if (!name || !description || !capacity || !pricePerEvent) {
+    if (!name || !capacity || !pricePerEvent) {
       return NextResponse.json(
         { error: "Missing fields" },
         { status: 400 }
@@ -44,7 +47,7 @@ export async function POST(req: Request) {
     const hall = await prisma.hall.create({
       data: {
         name,
-        description,
+        description: description || "",
         capacity: Number(capacity),
         pricePerEvent: Number(pricePerEvent),
         isActive: true,
@@ -59,9 +62,10 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to create hall" },
-      { status: 500 }
-    );
-  }
+  console.error(error);
+  return NextResponse.json(
+    { error: "Failed to create hall", details: String(error) },
+    { status: 500 }
+  );
+}
 }

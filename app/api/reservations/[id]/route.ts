@@ -4,10 +4,11 @@ import { prisma } from "@/lib/prisma";
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
-function canModifyOrCancel(startDateTime: Date) {
+function canModifyOrCancel(startDateTime: Date, minDays = 15) {
   const now = new Date();
-  const diffDays = (startDateTime.getTime() - now.getTime()) / MS_IN_DAY;
-  return diffDays >= 15;
+  const diffMs = startDateTime.getTime() - now.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays >= minDays;
 }
 
 function parseDate(value: any) {
@@ -73,17 +74,12 @@ export async function GET(
  * PUT /api/reservations/{id}
  * USER -> samo svoju
  * MANAGER / ADMIN -> bilo koju
- * Pravilo: izmjena samo ako je >= 15 dana do početka i status je ACTIVE
+ * Pravilo: može menjati samo ako ima >= 15 dana do početka
  */
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = getAuth(req);
-  if (!auth) {
-    return NextResponse.json({ error: "Missing auth headers" }, { status: 401 });
-  }
-
   const { id } = await context.params;
   const reservationId = Number(id);
 
@@ -91,24 +87,21 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid reservation id" }, { status: 400 });
   }
 
-  const body = await req.json().catch(() => null);
-  const start = parseDate(body?.startDateTime);
-  const end = parseDate(body?.endDateTime);
-  const guests = Number(body?.numberOfGuests);
+  const body = await req.json();
+  const { startDateTime, endDateTime, numberOfGuests } = body;
 
-  if (!start || !end || Number.isNaN(guests) || guests < 1) {
-    return NextResponse.json(
-      { error: "Missing/invalid fields" },
-      { status: 400 }
-    );
+  if (!startDateTime || !endDateTime || !numberOfGuests) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  if (end <= start) {
-    return NextResponse.json(
-      { error: "End must be after start" },
-      { status: 400 }
-    );
+  const userRole = req.headers.get("x-user-role");
+  const userIdHeader = req.headers.get("x-user-id");
+
+  if (!userRole || !userIdHeader) {
+    return NextResponse.json({ error: "Missing auth headers" }, { status: 401 });
   }
+
+  const userId = Number(userIdHeader);
 
   const reservation = await prisma.reservation.findUnique({
     where: { id: reservationId },
@@ -119,22 +112,28 @@ export async function PUT(
   }
 
   // USER može samo svoju
-  if (auth.role === "USER" && reservation.userId !== auth.userId) {
+  if (userRole === "USER" && reservation.userId !== userId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Dozvoli izmjene samo za ACTIVE
-  if (reservation.status !== "ACTIVE") {
+  // Pravilo 15 dana (računamo na osnovu TRENUTNOG početka rezervacije)
+  if (!canModifyOrCancel(reservation.startDateTime, 15)) {
     return NextResponse.json(
-      { error: "Reservation cannot be edited (not ACTIVE)." },
+      { error: "Reservation can be changed only 15+ days before start date" },
       { status: 400 }
     );
   }
 
-  // 15 dana pravilo (za sve uloge)
-  if (!canModifyOrCancel(reservation.startDateTime)) {
+  const newStart = new Date(startDateTime);
+  const newEnd = new Date(endDateTime);
+
+  if (Number.isNaN(newStart.getTime()) || Number.isNaN(newEnd.getTime())) {
+    return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
+  }
+
+  if (newEnd <= newStart) {
     return NextResponse.json(
-      { error: "Izmjena je moguća najkasnije 15 dana prije početka." },
+      { error: "End time must be after start time" },
       { status: 400 }
     );
   }
@@ -145,8 +144,8 @@ export async function PUT(
       hallId: reservation.hallId,
       status: "ACTIVE",
       id: { not: reservationId },
-      startDateTime: { lt: end },
-      endDateTime: { gt: start },
+      startDateTime: { lt: newEnd },
+      endDateTime: { gt: newStart },
     },
   });
 
@@ -160,9 +159,9 @@ export async function PUT(
   const updated = await prisma.reservation.update({
     where: { id: reservationId },
     data: {
-      startDateTime: start,
-      endDateTime: end,
-      numberOfGuests: guests,
+      startDateTime: newStart,
+      endDateTime: newEnd,
+      numberOfGuests: Number(numberOfGuests),
     },
   });
 
@@ -176,24 +175,27 @@ export async function PUT(
  * DELETE /api/reservations/{id}
  * USER -> samo svoju
  * MANAGER / ADMIN -> bilo koju
- * Pravilo: otkaz samo ako je >= 15 dana do početka i status je ACTIVE
- * Soft delete: status = CANCELLED
+ * Pravilo: može otkazati samo ako ima >= 15 dana do početka
  */
 export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = getAuth(req);
-  if (!auth) {
-    return NextResponse.json({ error: "Missing auth headers" }, { status: 401 });
-  }
-
   const { id } = await context.params;
   const reservationId = Number(id);
 
   if (Number.isNaN(reservationId)) {
     return NextResponse.json({ error: "Invalid reservation id" }, { status: 400 });
   }
+
+  const userRole = req.headers.get("x-user-role");
+  const userIdHeader = req.headers.get("x-user-id");
+
+  if (!userRole || !userIdHeader) {
+    return NextResponse.json({ error: "Missing auth headers" }, { status: 401 });
+  }
+
+  const userId = Number(userIdHeader);
 
   const reservation = await prisma.reservation.findUnique({
     where: { id: reservationId },
@@ -204,26 +206,19 @@ export async function DELETE(
   }
 
   // USER može samo svoju
-  if (auth.role === "USER" && reservation.userId !== auth.userId) {
+  if (userRole === "USER" && reservation.userId !== userId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Dozvoli otkaz samo za ACTIVE
-  if (reservation.status !== "ACTIVE") {
+  // Ne dozvoli otkaz ako je preblizu (ili prošlo)
+  if (!canModifyOrCancel(reservation.startDateTime, 15)) {
     return NextResponse.json(
-      { error: "Reservation cannot be cancelled (not ACTIVE)." },
+      { error: "Reservation can be cancelled only 15+ days before start date" },
       { status: 400 }
     );
   }
 
-  // 15 dana pravilo (za sve uloge)
-  if (!canModifyOrCancel(reservation.startDateTime)) {
-    return NextResponse.json(
-      { error: "Otkazivanje je moguće najkasnije 15 dana prije početka." },
-      { status: 400 }
-    );
-  }
-
+  // Soft cancel
   const cancelled = await prisma.reservation.update({
     where: { id: reservationId },
     data: { status: "CANCELLED" },

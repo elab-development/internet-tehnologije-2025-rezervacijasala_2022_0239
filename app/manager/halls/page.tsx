@@ -2,84 +2,63 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { apiFetch } from "@/lib/api";
 import Button from "../../../components/Button";
 import Input from "../../../components/Input";
 
 type Hall = {
   id: number;
   name: string;
+  description?: string;
   capacity: number;
-  price: number;
+  pricePerEvent: number;
   isActive: boolean;
 };
 
-const KEY = "mock_halls";
-
 export default function ManagerHallsPage() {
   const { user } = useAuth();
+
   const [halls, setHalls] = useState<Hall[]>([]);
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("");
   const [price, setPrice] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  /* ============================
+     FETCH SALA (backend)
+     ============================ */
   useEffect(() => {
-    const existing = JSON.parse(localStorage.getItem(KEY) || "[]");
-    setHalls(existing);
-  }, []);
-
-  function save(next: Hall[]) {
-    setHalls(next);
-    localStorage.setItem(KEY, JSON.stringify(next));
-  }
-
-  function addHall() {
-    setMessage(null);
-
-    if (!name.trim()) {
-      setMessage("Unesi naziv sale.");
-      return;
-    }
-    const c = Number(capacity);
-    if (!c || c < 1) {
-      setMessage("Kapacitet mora biti broj > 0.");
-      return;
-    }
-    const p = Number(price);
-    if (!p || p < 1) {
-      setMessage("Cena mora biti broj > 0.");
+    if (!user) {
+      setLoading(false);
       return;
     }
 
-    const newHall: Hall = {
-      id: Date.now(),
-      name: name.trim(),
-      capacity: c,
-      price: p,
-      isActive: true,
+    if (user.role !== "MANAGER" && user.role !== "ADMIN") {
+      setLoading(false);
+      return;
+    }
+
+    const authUser = {
+      id: user.id,
+      role: user.role,
     };
 
-    save([newHall, ...halls]);
-    setName("");
-    setCapacity("");
-    setPrice("");
-    setMessage("Sala dodata ✅");
+   apiFetch("/api/halls/admin", {}, { user: authUser })
+
+      .then(setHalls)
+      .catch(() => setMessage("Greška pri učitavanju sala"))
+      .finally(() => setLoading(false));
+  }, [user]);
+
+  /* ============================
+     GUARDOVI (posle hooka)
+     ============================ */
+  if (!user) {
+    return null;
   }
 
-  function toggleActive(id: number) {
-    const next = halls.map((h) =>
-      h.id === id ? { ...h, isActive: !h.isActive } : h
-    );
-    save(next);
-  }
-
-  function removeHall(id: number) {
-    const next = halls.filter((h) => h.id !== id);
-    save(next);
-  }
-
-  // ✅ Zaštita rute
-  if (!user || (user.role !== "MANAGER" && user.role !== "ADMIN")) {
+  if (user.role !== "MANAGER" && user.role !== "ADMIN") {
     return (
       <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
         <h1>Menadžer - Sale</h1>
@@ -88,10 +67,115 @@ export default function ManagerHallsPage() {
     );
   }
 
+  const authUser = {
+    id: user.id,
+    role: user.role,
+  };
+
+  /* ============================
+     DODAVANJE SALE
+     ============================ */
+  async function addHall() {
+    setMessage(null);
+
+    const c = Number(capacity);
+    const p = Number(price);
+
+    if (!name.trim()) {
+      setMessage("Unesi naziv sale.");
+      return;
+    }
+    if (!c || c < 1) {
+      setMessage("Kapacitet mora biti broj > 0.");
+      return;
+    }
+    if (!p || p < 1) {
+      setMessage("Cena mora biti broj > 0.");
+      return;
+    }
+
+    try {
+      const newHall = await apiFetch(
+        "/api/halls",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: name.trim(),
+            capacity: c,
+            pricePerEvent: p,
+          }),
+        },
+        { user: authUser }
+      );
+
+      setHalls([newHall, ...halls]);
+      setName("");
+      setCapacity("");
+      setPrice("");
+      setMessage("Sala dodata ✅");
+    } catch {
+      setMessage("Greška pri dodavanju sale");
+    }
+  }
+
+  /* ============================
+     AKTIVACIJA / DEAKTIVACIJA
+     ============================ */
+  async function toggleActive(hall: Hall) {
+  try {
+    const response = await apiFetch(
+      `/api/halls/${hall.id}/status`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          isActive: !hall.isActive,
+        }),
+      },
+      { user: authUser }
+    );
+
+    // backend vraća { message, hall }
+    setHalls(
+      halls.map((h) =>
+        h.id === hall.id ? response.hall : h
+      )
+    );
+  } catch (err) {
+    console.error(err);
+    setMessage("Greška pri promeni statusa sale");
+  }
+}
+
+
+  /* ============================
+     BRISANJE SALE
+     ============================ */
+  async function removeHall(id: number) {
+    try {
+      await apiFetch(
+        `/api/halls/${id}`,
+        { method: "DELETE" },
+        { user: authUser }
+      );
+
+      setHalls(halls.filter((h) => h.id !== id));
+    } catch {
+      setMessage("Greška pri brisanju sale");
+    }
+  }
+
+  if (loading) {
+    return <p style={{ padding: 24 }}>Učitavanje sala...</p>;
+  }
+
   return (
     <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
       <h1>Menadžer - Upravljanje salama</h1>
 
+      {/* ➕ Dodavanje sale */}
       <section
         style={{
           marginTop: 16,
@@ -111,14 +195,12 @@ export default function ManagerHallsPage() {
           type="number"
           value={capacity}
           onChange={setCapacity}
-          placeholder="npr. 120"
         />
         <Input
-          label="Cena"
+          label="Cena po događaju"
           type="number"
           value={price}
           onChange={setPrice}
-          placeholder="npr. 150"
         />
 
         <Button type="button" onClick={addHall}>
@@ -128,37 +210,38 @@ export default function ManagerHallsPage() {
         {message && <p style={{ fontSize: 14 }}>{message}</p>}
       </section>
 
+      {/* 📋 Lista sala */}
       <section style={{ marginTop: 22 }}>
-        <h2>Postojeće sale (mock)</h2>
+        <h2>Postojeće sale</h2>
 
         {halls.length === 0 ? (
-          <p>Nema sala. Dodaj prvu salu gore.</p>
+          <p>Nema sala u sistemu.</p>
         ) : (
           <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
             {halls.map((h) => (
-              <div
-                key={h.id}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 12,
-                  padding: 14,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  alignItems: "center",
-                }}
-              >
+                <div
+                  key={h.id}
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 12,
+                    padding: 14,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    alignItems: "center",
+                  }}
+                >
                 <div>
                   <div style={{ fontWeight: 700 }}>
-                    {h.name} {h.isActive ? "" : "(neaktivna)"}
+                    {h.name} {!h.isActive && "(neaktivna)"}
                   </div>
                   <div style={{ fontSize: 14, opacity: 0.8 }}>
-                    Kapacitet: {h.capacity} • Cena: {h.price}
+                    Kapacitet: {h.capacity} • Cena: {h.pricePerEvent}
                   </div>
                 </div>
 
                 <div style={{ display: "flex", gap: 8 }}>
-                  <Button type="button" onClick={() => toggleActive(h.id)}>
+                  <Button type="button" onClick={() => toggleActive(h)}>
                     {h.isActive ? "Deaktiviraj" : "Aktiviraj"}
                   </Button>
                   <Button type="button" onClick={() => removeHall(h.id)}>

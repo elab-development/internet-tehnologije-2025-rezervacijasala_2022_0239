@@ -6,16 +6,11 @@ export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  // ⬇️ KLJUČNA LINIJA
   const { id } = await context.params;
-
   const hallId = Number(id);
 
   if (Number.isNaN(hallId)) {
-    return NextResponse.json(
-      { error: "Invalid hall id" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid hall id" }, { status: 400 });
   }
 
   const hall = await prisma.hall.findUnique({
@@ -23,39 +18,34 @@ export async function GET(
   });
 
   if (!hall) {
-    return NextResponse.json(
-      { error: "Hall not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Hall not found" }, { status: 404 });
   }
 
   return NextResponse.json(hall);
 }
+
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const roleCheck = requireRole("MANAGER", req);
+  // ✅ MANAGER + ADMIN
+  const roleCheck =
+    requireRole(["MANAGER", "ADMIN"], req);
+
   if (roleCheck) return roleCheck;
 
   const { id } = await context.params;
   const hallId = Number(id);
 
   if (Number.isNaN(hallId)) {
-    return NextResponse.json(
-      { error: "Invalid hall id" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid hall id" }, { status: 400 });
   }
 
   const body = await req.json();
   const { name, description, capacity, pricePerEvent } = body;
 
-  if (!name || !description || !capacity || !pricePerEvent) {
-    return NextResponse.json(
-      { error: "Missing fields" },
-      { status: 400 }
-    );
+  if (!name || !capacity || !pricePerEvent) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
   const hall = await prisma.hall.findUnique({
@@ -63,17 +53,14 @@ export async function PUT(
   });
 
   if (!hall) {
-    return NextResponse.json(
-      { error: "Hall not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Hall not found" }, { status: 404 });
   }
 
   const updated = await prisma.hall.update({
     where: { id: hallId },
     data: {
       name,
-      description,
+      description: description ?? null,
       capacity: Number(capacity),
       pricePerEvent: Number(pricePerEvent),
     },
@@ -83,4 +70,51 @@ export async function PUT(
     message: "Hall updated",
     hall: updated,
   });
+}
+
+export async function DELETE(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  // ✅ MANAGER + ADMIN
+  const roleCheck =
+    requireRole(["MANAGER", "ADMIN"], req);
+
+  if (roleCheck) return roleCheck;
+
+  const { id } = await context.params;
+  const hallId = Number(id);
+
+  if (Number.isNaN(hallId)) {
+    return NextResponse.json({ error: "Invalid hall id" }, { status: 400 });
+  }
+
+  // ✅ Provera da li postoje rezervacije
+  const reservationsCount = await prisma.reservation.count({
+    where: { hallId },
+  });
+
+  if (reservationsCount > 0) {
+    return NextResponse.json(
+      {
+        error:
+          "Sala ima postojeće rezervacije i ne može biti obrisana. Možete je deaktivirati.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const hall = await prisma.hall.findUnique({
+    where: { id: hallId },
+  });
+
+  if (!hall) {
+    return NextResponse.json({ error: "Hall not found" }, { status: 404 });
+  }
+
+  await prisma.hall.delete({
+    where: { id: hallId },
+  });
+
+  return NextResponse.json({ message: "Hall deleted successfully" });
 }

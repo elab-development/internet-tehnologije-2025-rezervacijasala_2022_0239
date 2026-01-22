@@ -94,22 +94,29 @@ export async function POST(req: Request) {
     );
   }
 }
-export async function GET() {
+export async function GET(req: Request) {
+  const role = req.headers.get("x-user-role");
+  if (role !== "MANAGER" && role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const reservations = await prisma.reservation.findMany({
       include: {
-        user: true,
+        user: { select: { firstName: true, lastName: true, email: true } },
         hall: true,
       },
+      orderBy: { startDateTime: "desc" },
     });
 
     return NextResponse.json(reservations);
   } catch (error) {
-  console.error("RESERVATION POST ERROR:", error);
-  return NextResponse.json(
-    { error: "Failed to create reservation" },
-    { status: 500 }
-  );
+    console.error("RESERVATION GET ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch reservations" },
+      { status: 500 }
+    );
+  }
 }
-}
+
 

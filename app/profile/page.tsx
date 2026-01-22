@@ -11,7 +11,7 @@ export default function ProfilePage() {
     return (
       <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
         <h1>Profil</h1>
-        <p>Nisi prijavljena.</p>
+        <p>Nisi prijavljen.</p>
         <Link href="/login">Idi na prijavu</Link>
       </main>
     );
@@ -31,20 +31,34 @@ export default function ProfilePage() {
         }}
       >
         <p>
-          <b>Ime:</b> {user.name}
+          <b>Ime:</b> {user.firstName} {user.lastName}
         </p>
+
         <p>
           <b>Uloga:</b> {user.role}
         </p>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+        <p>
+          <b>Email:</b> {user.email}
+        </p>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            marginTop: 12,
+            flexWrap: "wrap",
+          }}
+        >
           <Link href="/reservations">Moje rezervacije</Link>
 
           {(user.role === "MANAGER" || user.role === "ADMIN") && (
             <Link href="/manager/halls">Menadžer</Link>
           )}
 
-          {user.role === "ADMIN" && <Link href="/admin/users">Admin</Link>}
+          {user.role === "ADMIN" && (
+            <Link href="/admin/users">Admin</Link>
+          )}
         </div>
 
         <div style={{ marginTop: 14 }}>
@@ -56,4 +70,3 @@ export default function ProfilePage() {
     </main>
   );
 }
-
