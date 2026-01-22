@@ -46,7 +46,7 @@ model Reservation {
   startDateTime  DateTime
   endDateTime    DateTime
   numberOfGuests Int
-  status         String
+  status         ReservationStatus @default(ACTIVE)
   createdAt      DateTime @default(now())
 }
 
@@ -56,4 +56,8 @@ model UnavailableDate {
   hall   Hall     @relation(fields: [hallId], references: [id])
   date   DateTime
   reason String?
+}
+enum ReservationStatus {
+  ACTIVE
+  CANCELLED
 }
