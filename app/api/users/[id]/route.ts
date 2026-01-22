@@ -41,7 +41,7 @@ export async function DELETE(
     return NextResponse.json(
       {
         error:
-          "User has reservations and cannot be deleted",
+          "Korisnik ima rezervacije i ne moze biti izbrisan",
       },
       { status: 400 }
     );

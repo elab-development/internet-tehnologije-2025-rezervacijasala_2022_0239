@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { apiFetch } from "@/lib/api";
 import Button from "../../../components/Button";
 import Input from "../../../components/Input";
+import ConfirmModal from "../../../components/Confirm";
 
 type Hall = {
   id: number;
@@ -25,8 +26,11 @@ export default function ManagerHallsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ STATE ZA MODAL
+  const [confirmHallId, setConfirmHallId] = useState<number | null>(null);
+
   /* ============================
-     FETCH SALA (backend)
+     FETCH SALA
      ============================ */
   useEffect(() => {
     if (!user) {
@@ -44,19 +48,16 @@ export default function ManagerHallsPage() {
       role: user.role,
     };
 
-   apiFetch("/api/halls/admin", {}, { user: authUser })
-
+    apiFetch("/api/halls/admin", {}, { user: authUser })
       .then(setHalls)
       .catch(() => setMessage("Greška pri učitavanju sala"))
       .finally(() => setLoading(false));
   }, [user]);
 
   /* ============================
-     GUARDOVI (posle hooka)
+     GUARDOVI
      ============================ */
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   if (user.role !== "MANAGER" && user.role !== "ADMIN") {
     return (
@@ -108,13 +109,13 @@ export default function ManagerHallsPage() {
         { user: authUser }
       );
 
-      setHalls([newHall, ...halls]);
+      setHalls((prev) => [newHall, ...prev]);
       setName("");
       setCapacity("");
       setPrice("");
       setMessage("Sala dodata ✅");
-    } catch {
-      setMessage("Greška pri dodavanju sale");
+    } catch (err: any) {
+      setMessage(err.message || "Greška pri dodavanju sale");
     }
   }
 
@@ -122,36 +123,30 @@ export default function ManagerHallsPage() {
      AKTIVACIJA / DEAKTIVACIJA
      ============================ */
   async function toggleActive(hall: Hall) {
-  try {
-    const response = await apiFetch(
-      `/api/halls/${hall.id}/status`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+    try {
+      const response = await apiFetch(
+        `/api/halls/${hall.id}/status`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            isActive: !hall.isActive,
+          }),
         },
-        body: JSON.stringify({
-          isActive: !hall.isActive,
-        }),
-      },
-      { user: authUser }
-    );
+        { user: authUser }
+      );
 
-    // backend vraća { message, hall }
-    setHalls(
-      halls.map((h) =>
-        h.id === hall.id ? response.hall : h
-      )
-    );
-  } catch (err) {
-    console.error(err);
-    setMessage("Greška pri promeni statusa sale");
+      setHalls((prev) =>
+        prev.map((h) => (h.id === hall.id ? response.hall : h))
+      );
+    } catch (err) {
+      console.error(err);
+      setMessage("Greška pri promeni statusa sale");
+    }
   }
-}
-
 
   /* ============================
-     BRISANJE SALE
+     BRISANJE SALE (MODAL)
      ============================ */
   async function removeHall(id: number) {
     try {
@@ -161,9 +156,11 @@ export default function ManagerHallsPage() {
         { user: authUser }
       );
 
-      setHalls(halls.filter((h) => h.id !== id));
-    } catch {
-      setMessage("Greška pri brisanju sale");
+      setHalls((prev) => prev.filter((h) => h.id !== id));
+      setConfirmHallId(null);
+    } catch (err: any) {
+      setMessage(err.message || "Greška pri brisanju sale");
+      setConfirmHallId(null);
     }
   }
 
@@ -219,18 +216,18 @@ export default function ManagerHallsPage() {
         ) : (
           <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
             {halls.map((h) => (
-                <div
-                  key={h.id}
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 12,
-                    padding: 14,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    alignItems: "center",
-                  }}
-                >
+              <div
+                key={h.id}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 12,
+                  padding: 14,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  alignItems: "center",
+                }}
+              >
                 <div>
                   <div style={{ fontWeight: 700 }}>
                     {h.name} {!h.isActive && "(neaktivna)"}
@@ -244,7 +241,10 @@ export default function ManagerHallsPage() {
                   <Button type="button" onClick={() => toggleActive(h)}>
                     {h.isActive ? "Deaktiviraj" : "Aktiviraj"}
                   </Button>
-                  <Button type="button" onClick={() => removeHall(h.id)}>
+                  <Button
+                    type="button"
+                    onClick={() => setConfirmHallId(h.id)}
+                  >
                     Obriši
                   </Button>
                 </div>
@@ -253,6 +253,15 @@ export default function ManagerHallsPage() {
           </div>
         )}
       </section>
+
+      {/* ✅ CONFIRM MODAL ZA BRISANJE SALE */}
+      <ConfirmModal
+        open={confirmHallId !== null}
+        title="Brisanje sale"
+        message="Da li si siguran da želiš da obrišeš ovu salu?"
+        onCancel={() => setConfirmHallId(null)}
+        onConfirm={() => removeHall(confirmHallId!)}
+      />
     </main>
   );
 }
