@@ -4,9 +4,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 
 type User = {
   id: number;
+  firstName: string;
+  lastName: string;
   email: string;
   role: "USER" | "MANAGER" | "ADMIN";
 };
+;
 
 type AuthContextType = {
   user: User | null;
@@ -22,7 +25,6 @@ const STORAGE_KEY = "auth_user";
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // ✅ učitaj user-a iz localStorage pri startu aplikacije
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {

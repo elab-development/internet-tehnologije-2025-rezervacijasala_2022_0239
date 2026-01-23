@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-/* =========================
-   RESTAURANT – LIGHT LILAC THEME (Ljubićica)
-   ========================= */
-
 :root {
   --bg-main: #fbf7ff;
   --bg-soft: #f3edff;
@@ -11,19 +7,15 @@
 
   --text-main: #251a2b;
   --text-muted: #5a3d66;
-
-  /* Ljubičica palette */
-  --accent-primary: #6a2c91;    /* duboka ljubičasta */
-  --accent-secondary: #a855f7;  /* lila */
-  --accent-gold: #c4b5fd;       /* soft lavender (za focus) */
+  --accent-primary: #6a2c91;    
+  --accent-secondary: #a855f7;  
+  --accent-gold: #c4b5fd;       
   --accent-light: #efe6ff;
 
   --border-color: rgba(37, 26, 43, 0.14);
 }
 
-/* =========================
-   GLOBAL BACKGROUND
-   ========================= */
+/*pozadina*/
 
 body {
   background:
@@ -47,9 +39,7 @@ body {
   line-height: 1.65;
 }
 
-/* =========================
-   TYPOGRAPHY
-   ========================= */
+/*tekst*/
 
 h1, h2, h3 {
   font-weight: 700;
@@ -61,9 +51,7 @@ h2 { font-size: 2rem; }
 
 p { color: var(--text-muted); }
 
-/* =========================
-   LINKS
-   ========================= */
+/*linkovi*/
 
 a {
   color: var(--accent-primary);
@@ -74,9 +62,7 @@ a:hover {
   color: var(--accent-secondary);
 }
 
-/* =========================
-   CARD COMPONENT
-   ========================= */
+/* hall kartice */
 
 .card {
   background:
@@ -100,9 +86,7 @@ a:hover {
     0 32px 70px rgba(37, 26, 43, 0.18);
 }
 
-/* =========================
-   INPUTS
-   ========================= */
+/* input polja*/
 
 input, textarea, select {
   background: #fff;
@@ -118,9 +102,7 @@ input:focus, textarea:focus {
   box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.18);
 }
 
-/* =========================
-   BUTTON
-   ========================= */
+/* dugme*/
 
 button {
   background:
@@ -157,11 +139,9 @@ button:hover {
 }
 
 .nav-btn {
-  /* ista visina kao linkovi (da ne "iskače") */
   padding: 8px 14px;
   border-radius: 12px;
 
-  /* koristi tvoju ljubičastu temu */
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   color: #fff;
 
@@ -169,7 +149,6 @@ button:hover {
   font-weight: 700;
   cursor: pointer;
 
-  /* da ne bude preveliko u navbaru */
   font-size: 14px;
   line-height: 1;
 }

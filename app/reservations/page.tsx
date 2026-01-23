@@ -52,7 +52,6 @@ export default function MyReservationsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, user?.role]);
 
   if (!user) {

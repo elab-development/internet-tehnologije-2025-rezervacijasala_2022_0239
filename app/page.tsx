@@ -4,7 +4,7 @@ import Image from "next/image";
 export default function HomePage() {
   return (
     <main style={{ padding: 24, maxWidth: 1100, margin: "0 auto" }}>
-      {/* HERO */}
+      
       <section
         className="card"
         style={{
@@ -58,7 +58,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* IMAGE */}
+        {/* slika*/}
         <img
           src="/images/restaurant/logo.png"
           alt="Naš restoran"
@@ -72,7 +72,7 @@ export default function HomePage() {
         />
       </section>
 
-      {/* FEATURES */}
+      {/* osobine */}
       <section style={{ marginTop: 18 }}>
         <div
           style={{

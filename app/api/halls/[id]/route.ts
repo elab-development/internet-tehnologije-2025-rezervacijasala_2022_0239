@@ -28,7 +28,6 @@ export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  // ✅ MANAGER + ADMIN
   const roleCheck =
     requireRole(["MANAGER", "ADMIN"], req);
 
@@ -76,7 +75,6 @@ export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  // ✅ MANAGER + ADMIN
   const roleCheck =
     requireRole(["MANAGER", "ADMIN"], req);
 
@@ -89,7 +87,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid hall id" }, { status: 400 });
   }
 
-  // ✅ Provera da li postoje rezervacije
+  // provera da li postoje rezervacije
   const reservationsCount = await prisma.reservation.count({
     where: { hallId },
   });

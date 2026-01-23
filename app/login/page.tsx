@@ -39,7 +39,6 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      // ✅ PRAVILNO MAPIRANJE BACKEND RESPONSE-A
       const u = data.user;
 
       login({

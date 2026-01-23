@@ -122,7 +122,7 @@ export default function ReserveForm({
         background: "var(--card-bg)",
       }}
     >
-      {/* DATUM */}
+      {/* datum */}
       <div style={{ display: "grid", gap: 6 }}>
         <label style={{ fontWeight: 700 }}>Datum</label>
         <input
@@ -138,7 +138,7 @@ export default function ReserveForm({
         )}
       </div>
 
-      {/* VRIJEME */}
+      {/* satnica*/}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div style={{ display: "grid", gap: 6 }}>
           <label style={{ fontWeight: 700 }}>Početak</label>
@@ -163,7 +163,7 @@ export default function ReserveForm({
         </div>
       </div>
 
-      {/* GOSTI */}
+      {/* broj gostiju*/}
       <div style={{ display: "grid", gap: 6 }}>
         <label style={{ fontWeight: 700 }}>Broj gostiju</label>
         <input
@@ -174,7 +174,7 @@ export default function ReserveForm({
         />
       </div>
 
-      {/* SAŽETAK + CIJENA */}
+      {/* rezime rezervacije */}
       <div
         style={{
           border: "1px solid var(--border-color)",

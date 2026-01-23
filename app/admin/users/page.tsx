@@ -4,17 +4,14 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { apiFetch } from "@/lib/api";
 import Button from "../../../components/Button";
+import ConfirmModal from "../../../components/Confirm";
+
+type Role = "USER" | "MANAGER" | "ADMIN";
 
 type UserRow = {
   id: number;
   email: string;
-  role:
-    | "USER"
-    | "MANAGER"
-    | "ADMIN"
-    | {
-        name: "USER" | "MANAGER" | "ADMIN";
-      };
+  role: Role;
 };
 
 export default function AdminUsersPage() {
@@ -23,17 +20,11 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirmUserId, setConfirmUserId] = useState<number | null>(null);
 
-  /* ============================
-     FETCH USERS (backend)
-     ============================ */
+  /* */
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    if (user.role !== "ADMIN") {
+    if (!user || user.role !== "ADMIN") {
       setLoading(false);
       return;
     }
@@ -44,17 +35,20 @@ export default function AdminUsersPage() {
     };
 
     apiFetch("/api/users", {}, { user: authUser })
-      .then(setUsers)
-      .catch(() => setMessage("Greška pri učitavanju korisnika"))
+      .then((data) => {
+        const normalized = data.map((u: any) => ({
+          id: u.id,
+          email: u.email,
+          role: typeof u.role === "string" ? u.role : u.role.name,
+        }));
+        setUsers(normalized);
+      })
+      .catch((err) => setMessage(err.message || "Greška pri učitavanju korisnika"))
       .finally(() => setLoading(false));
   }, [user]);
 
-  /* ============================
-     GUARDOVI
-     ============================ */
-  if (!user) {
-    return null;
-  }
+  /* zastita */
+  if (!user) return null;
 
   if (user.role !== "ADMIN") {
     return (
@@ -70,12 +64,8 @@ export default function AdminUsersPage() {
     role: user.role,
   };
 
-  /* ============================
-     BRISANJE KORISNIKA
-     ============================ */
+  /* brisanje */
   async function removeUser(id: number) {
-    if (!confirm("Da li si siguran da želiš da obrišeš korisnika?")) return;
-
     try {
       await apiFetch(
         `/api/users/${id}`,
@@ -83,9 +73,11 @@ export default function AdminUsersPage() {
         { user: authUser }
       );
 
-      setUsers(users.filter((u) => u.id !== id));
-    } catch {
-      setMessage("Greška pri brisanju korisnika");
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      setConfirmUserId(null);
+    } catch (err: any) {
+      setMessage(err.message || "Greška pri brisanju korisnika");
+      setConfirmUserId(null);
     }
   }
 
@@ -95,7 +87,7 @@ export default function AdminUsersPage() {
 
   return (
     <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
-      <h1>Admin - Upravljanje korisnicima</h1>
+      <h1>Upravljanje korisnicima</h1>
 
       {message && <p style={{ fontSize: 14 }}>{message}</p>}
 
@@ -118,24 +110,30 @@ export default function AdminUsersPage() {
               <div>
                 <div style={{ fontWeight: 700 }}>{u.email}</div>
                 <div style={{ fontSize: 14, opacity: 0.8 }}>
-                  Uloga:{" "}
-                  {typeof u.role === "string" ? u.role : u.role.name}
+                  Uloga: {u.role}
                 </div>
               </div>
 
-              <div>
-                <Button
-                  type="button"
-                  onClick={() => removeUser(u.id)}
-                  disabled={u.id === user.id}
-                >
-                  Obriši
-                </Button>
-              </div>
+              <Button
+                type="button"
+                onClick={() => setConfirmUserId(u.id)}
+                disabled={u.id === user.id}
+              >
+                Obriši
+              </Button>
             </div>
           ))}
         </div>
       )}
+
+      {/* confirm prozor*/}
+      <ConfirmModal
+        open={confirmUserId !== null}
+        title="Brisanje korisnika"
+        message="Da li si siguran da želiš da obrišeš korisnika?"
+        onCancel={() => setConfirmUserId(null)}
+        onConfirm={() => removeUser(confirmUserId!)}
+      />
     </main>
   );
 }

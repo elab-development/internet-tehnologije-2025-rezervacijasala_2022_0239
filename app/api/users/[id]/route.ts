@@ -1,4 +1,3 @@
-// app/api/users/[id]/route.ts
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -8,8 +7,7 @@ export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  // ✅ ADMIN ONLY
-  const roleCheck = requireRole(["MANAGER", "ADMIN"], req);
+  const roleCheck = requireRole(["ADMIN"], req);
 
   if (roleCheck) return roleCheck;
 
@@ -22,8 +20,7 @@ export async function DELETE(
       { status: 400 }
     );
   }
-
-  // ❌ zabrani brisanje samog sebe
+//ne moze samog sebe
   const authUser = req.headers.get("x-user-id");
   if (authUser && Number(authUser) === userId) {
     return NextResponse.json(
@@ -32,7 +29,7 @@ export async function DELETE(
     );
   }
 
-  // ❌ zabrani brisanje ako ima rezervacije
+  //ne moze ako ima rezervacije
   const reservationsCount = await prisma.reservation.count({
     where: { userId },
   });
@@ -41,7 +38,7 @@ export async function DELETE(
     return NextResponse.json(
       {
         error:
-          "User has reservations and cannot be deleted",
+          "Korisnik ima rezervacije i ne moze biti izbrisan",
       },
       { status: 400 }
     );

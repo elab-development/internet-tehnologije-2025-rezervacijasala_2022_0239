@@ -9,8 +9,8 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Zatvori na klik van menija
-  useEffect(() => {
+  // dropdown se skloni kad se klikne negdje na stranici
+    useEffect(() => {
     function onDocClick(e: MouseEvent) {
       if (!open) return;
       const target = e.target as Node;
@@ -22,14 +22,6 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
-  // Zatvori na ESC
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
 
   return (
     <header style={{ borderBottom: "1px solid var(--border-color)" }}>
@@ -44,14 +36,14 @@ export default function Navbar() {
           gap: 16,
         }}
       >
-        {/* LEVI BLOK */}
+        {/*lijevi blok*/}
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <Link href="/">Početna</Link>
           <Link href="/halls">Sale</Link>
           <Link href="/about">O restoranu</Link>
         </div>
 
-        {/* DESNI BLOK */}
+        {/* desni blok*/}
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {!user && (
             <>
@@ -70,10 +62,10 @@ export default function Navbar() {
                 gap: 12,
               }}
             >
-              {/* (opciono) quick link - možeš obrisati ako želiš */}
+              
               <Link href="/reservations">Moje rezervacije</Link>
 
-              {/* Dropdown trigger */}
+              {/* Dropdown */}
               <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
@@ -99,7 +91,7 @@ export default function Navbar() {
                 </span>
               </button>
 
-              {/* Dropdown menu */}
+              {/* dropdown meni */}
               {open && (
                 <div
                   role="menu"
@@ -120,7 +112,7 @@ export default function Navbar() {
 
                   <div style={{ height: 1, background: "var(--border-color)" }} />
 
-                  {/* Items */}
+                  {/* satvke u dropdownu*/}
                   <MenuLink href="/profile" onClick={() => setOpen(false)}>
                     Lični podaci
                   </MenuLink>

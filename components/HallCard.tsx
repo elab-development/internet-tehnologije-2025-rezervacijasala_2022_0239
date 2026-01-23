@@ -19,7 +19,7 @@ export default function HallCard({ hall }: { hall: Hall }) {
         flexDirection: "column",
       }}
     >
-      {/* IMAGE */}
+      
       <img
         src={`/images/halls/${hall.id}.jpg`}
         alt={hall.name}
@@ -30,7 +30,6 @@ export default function HallCard({ hall }: { hall: Hall }) {
         }}
       />
 
-      {/* CONTENT */}
       <div style={{ padding: 14, display: "grid", gap: 6 }}>
         <h3 style={{ margin: 0 }}>{hall.name}</h3>
         <p style={{ margin: 0, fontSize: 14 }}>

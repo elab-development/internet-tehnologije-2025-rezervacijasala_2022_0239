@@ -27,7 +27,6 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // USER role (pretpostavljamo da postoji u bazi)
     const userRole = await prisma.role.findFirst({
       where: { name: "USER" },
     });

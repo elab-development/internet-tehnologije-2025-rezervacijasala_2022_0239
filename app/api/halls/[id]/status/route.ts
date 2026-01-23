@@ -2,15 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 
-/**
- * PUT /api/halls/{id}/status
- * MANAGER / ADMIN
- */
+
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  // ✅ DOZVOLI I MANAGER I ADMIN
   const roleCheck =
     requireRole(["MANAGER", "ADMIN"], req);
 

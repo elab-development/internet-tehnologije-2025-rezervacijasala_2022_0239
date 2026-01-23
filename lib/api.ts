@@ -28,7 +28,6 @@ export async function apiFetch(
   try {
     data = await response.json();
   } catch {
-    // response bez body-ja
   }
 
   if (!response.ok) {

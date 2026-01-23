@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 
-/**
- * GET /api/halls
- * Svi mogu da vide sale
- */
+
 export async function GET() {
   try {
     const halls = await prisma.hall.findMany({
@@ -21,12 +18,8 @@ export async function GET() {
   }
 }
 
-/**
- * POST /api/halls
- * Samo MANAGER ili ADMIN mogu da dodaju salu
- */
+
 export async function POST(req: Request) {
-  // 🔐 ROLE CHECK (OVO JE NOVO)
 
   const roleCheck =
   requireRole(["MANAGER", "ADMIN"], req);

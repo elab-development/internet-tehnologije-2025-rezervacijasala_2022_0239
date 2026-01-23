@@ -19,7 +19,7 @@ export default function HallDetailsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params); // Next.js 14+ params
+  const { id } = use(params); 
   const { user } = useAuth();
 
   const [hall, setHall] = useState<Hall | null>(null);
