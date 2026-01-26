@@ -10,8 +10,13 @@ type Hall = {
   id: number;
   name: string;
   capacity: number;
-  pricePerEvent: number;
+  description: string;
+  pricePerHour: number;
   isActive: boolean;
+  isClosed: boolean;
+  hasStage: boolean;
+  city: { id: number; name: string };
+  category: { id: number; name: string };
 };
 
 export default function HallDetailsPage({
@@ -19,7 +24,7 @@ export default function HallDetailsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params); 
+  const { id } = use(params);
   const { user } = useAuth();
 
   const [hall, setHall] = useState<Hall | null>(null);
@@ -27,16 +32,10 @@ export default function HallDetailsPage({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-      apiFetch(`/api/halls/${id}`, {}, user ? { user } : undefined)
-      .then((data) => {
-        setHall(data);
-      })
-      .catch((err) => {
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    apiFetch(`/api/halls/${id}`, {}, user ? { user } : undefined)
+      .then((data) => setHall(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, [id, user]);
 
   if (loading) {
@@ -56,33 +55,45 @@ export default function HallDetailsPage({
     );
   }
 
-  if (!hall) {
-    return null;
-  }
+  if (!hall) return null;
 
   return (
     <main style={{ padding: 24, maxWidth: 800, margin: "0 auto" }}>
       <Link href="/halls">← Nazad</Link>
+
       <img
-      src={`/images/halls/${hall.id}.jpg`}
-      alt={hall.name}
-      style={{
-        width: "100%",
-        height: 300,
-        objectFit: "cover",
-        borderRadius: 18,
-        margin: "16px 0",
-        border: "1px solid var(--border-color)",
-      }}
-    />
+        src={`/images/halls/${hall.id}.jpg`}
+        alt={hall.name}
+        style={{
+          width: "100%",
+          height: 300,
+          objectFit: "cover",
+          borderRadius: 18,
+          margin: "16px 0",
+          border: "1px solid var(--border-color)",
+        }}
+      />
+
       <h1>{hall.name}</h1>
+
+      <p>Grad: {hall.city?.name}</p>
+      <p>Kategorija: {hall.category?.name}</p>
+
       <p>Kapacitet: {hall.capacity}</p>
-      <p>Cijena: {hall.pricePerEvent} €</p>
+      <p>Cijena po satu: {hall.pricePerHour} €</p>
+
+      <p>
+        Ima binu: <strong>{hall.hasStage ? "Da" : "Ne"}</strong>
+      </p>
+      <p>
+        Tip:{" "}
+        <strong>{hall.isClosed ? "U zatvorenom prostoru" : "Na otvorenom"}</strong>
+      </p>
 
       <hr style={{ margin: "24px 0" }} />
 
       <h2>Rezerviši ovu salu</h2>
-      <ReserveForm hallId={hall.id} pricePerEvent={hall.pricePerEvent} />
+      <ReserveForm hallId={hall.id} pricePerHour={hall.pricePerHour} />
     </main>
   );
 }

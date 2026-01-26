@@ -17,10 +17,8 @@ export default function EditReservationModal({
   onSaved: () => void;
 }) {
   const { user } = useAuth();
-
   const hours = useMemo(() => buildHourOptions(), []);
 
-  // init state from reservation
   const start = new Date(reservation.startDateTime);
   const end = new Date(reservation.endDateTime);
 
@@ -55,7 +53,7 @@ export default function EditReservationModal({
     return { startISO, endISO };
   }
 
-    const durationHours = useMemo(() => {
+  const durationHours = useMemo(() => {
     try {
       const { startISO, endISO } = computeISO();
       const h = diffHours(startISO, endISO);
@@ -71,12 +69,10 @@ export default function EditReservationModal({
   }, [durationHours]);
 
   const totalPrice = useMemo(() => {
-    // kod tebe pricePerEvent tretiraš kao €/sat (kao u ReserveForm)
-    const pricePerHour = reservation.hall?.pricePerEvent ?? 0;
+    const pricePerHour = reservation.hall?.pricePerHour ?? 0;
     if (durationHours <= 0 || pricePerHour <= 0) return 0;
     return durationHours * pricePerHour;
-  }, [durationHours, reservation.hall]);
-
+  }, [durationHours, reservation.hall?.pricePerHour]);
 
   async function save() {
     if (!user) return;
@@ -129,8 +125,6 @@ export default function EditReservationModal({
     }
   }
 
-  
-
   return (
     <div
       onClick={onClose}
@@ -144,11 +138,7 @@ export default function EditReservationModal({
         zIndex: 50,
       }}
     >
-      <div
-        className="card"
-        onClick={(e) => e.stopPropagation()}
-        style={{ width: "min(720px, 100%)", display: "grid", gap: 14 }}
-      >
+      <div className="card" onClick={(e) => e.stopPropagation()} style={{ width: "min(720px, 100%)", display: "grid", gap: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
           <h2 style={{ margin: 0 }}>Izmijeni rezervaciju</h2>
           <button type="button" onClick={onClose} style={{ padding: "10px 14px" }}>
@@ -183,7 +173,6 @@ export default function EditReservationModal({
                   </option>
                 ))}
               </select>
-
             </div>
           </div>
 
@@ -207,11 +196,7 @@ export default function EditReservationModal({
             <button
               type="button"
               onClick={onClose}
-              style={{
-                background: "transparent",
-                color: "var(--accent-primary)",
-                border: "1px solid var(--border-color)",
-              }}
+              style={{ background: "transparent", color: "var(--accent-primary)", border: "1px solid var(--border-color)" }}
             >
               Odustani
             </button>

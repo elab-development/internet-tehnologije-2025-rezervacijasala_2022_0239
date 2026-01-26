@@ -20,20 +20,20 @@ export default function ReservationCard({
 }) {
   const { user } = useAuth();
 
-  const canAction = reservation.status === "ACTIVE" && canModifyOrCancel(reservation.startDateTime);
+  const canAction =
+    reservation.status === "ACTIVE" &&
+    canModifyOrCancel(reservation.startDateTime);
 
-  // Trajanje (u satima) iz start/end ISO stringova
   const durationHours = useMemo(() => {
     const h = diffHours(reservation.startDateTime, reservation.endDateTime);
     return h > 0 ? h : 0;
   }, [reservation.startDateTime, reservation.endDateTime]);
 
-  // Ukupna cijena (kod tebe pricePerEvent tretiraš kao €/sat)
   const totalPrice = useMemo(() => {
-    const pricePerHour = reservation.hall?.pricePerEvent ?? 0;
+    const pricePerHour = reservation.hall?.pricePerHour ?? 0;
     if (durationHours <= 0 || pricePerHour <= 0) return 0;
     return durationHours * pricePerHour;
-  }, [durationHours, reservation.hall]);
+  }, [durationHours, reservation.hall?.pricePerHour]);
 
   async function cancel() {
     if (!user) return;
@@ -47,7 +47,11 @@ export default function ReservationCard({
     if (!ok) return;
 
     try {
-      await apiFetch(`/api/reservations/${reservation.id}`, { method: "DELETE" }, { user });
+      await apiFetch(
+        `/api/reservations/${reservation.id}`,
+        { method: "DELETE" },
+        { user }
+      );
       onChanged();
     } catch (e: any) {
       alert(e?.message || "Greška pri otkazivanju");
@@ -58,36 +62,46 @@ export default function ReservationCard({
     <div className="card" style={{ display: "grid", gap: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "grid", gap: 6 }}>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>Sala: {reservation.hall.name}</div>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>
+            Sala: {reservation.hall.name}
+          </div>
 
           {isPrivileged && reservation.user && (
             <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
               Rezervisao:{" "}
               <strong style={{ color: "var(--text-main)" }}>
-                {(reservation.user.firstName || "") + " " + (reservation.user.lastName || "")}
+                {(reservation.user.firstName || "") +
+                  " " +
+                  (reservation.user.lastName || "")}
               </strong>
             </div>
           )}
 
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Od:</strong> {fmtDateTimeSR(reservation.startDateTime)}
+            <strong style={{ color: "var(--text-main)" }}>Od:</strong>{" "}
+            {fmtDateTimeSR(reservation.startDateTime)}
           </div>
 
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Do:</strong> {fmtDateTimeSR(reservation.endDateTime)}
+            <strong style={{ color: "var(--text-main)" }}>Do:</strong>{" "}
+            {fmtDateTimeSR(reservation.endDateTime)}
           </div>
 
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Broj gostiju:</strong> {reservation.numberOfGuests}
+            <strong style={{ color: "var(--text-main)" }}>
+              Broj gostiju:
+            </strong>{" "}
+            {reservation.numberOfGuests}
           </div>
 
-          {/* ✅ NOVO: ukupna cena */}
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Ukupno:</strong> {totalPrice.toFixed(2)} €
+            <strong style={{ color: "var(--text-main)" }}>Ukupno:</strong>{" "}
+            {totalPrice.toFixed(2)} €
           </div>
 
           <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Status:</strong> {statusLabel(reservation.status)}
+            <strong style={{ color: "var(--text-main)" }}>Status:</strong>{" "}
+            {statusLabel(reservation.status)}
           </div>
         </div>
       </div>
@@ -97,7 +111,10 @@ export default function ReservationCard({
           type="button"
           onClick={onEdit}
           disabled={!canAction}
-          style={{ opacity: canAction ? 1 : 0.5, cursor: canAction ? "pointer" : "not-allowed" }}
+          style={{
+            opacity: canAction ? 1 : 0.5,
+            cursor: canAction ? "pointer" : "not-allowed",
+          }}
         >
           Izmijeni
         </button>
@@ -106,7 +123,10 @@ export default function ReservationCard({
           type="button"
           onClick={cancel}
           disabled={!canAction}
-          style={{ opacity: canAction ? 1 : 0.5, cursor: canAction ? "pointer" : "not-allowed" }}
+          style={{
+            opacity: canAction ? 1 : 0.5,
+            cursor: canAction ? "pointer" : "not-allowed",
+          }}
         >
           Otkaži
         </button>

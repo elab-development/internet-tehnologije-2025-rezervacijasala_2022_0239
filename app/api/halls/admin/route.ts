@@ -7,13 +7,15 @@ import { requireRole } from "@/lib/auth";
  * MANAGER / ADMIN
  */
 export async function GET(req: Request) {
-  const roleCheck =
-    requireRole(["MANAGER", "ADMIN"], req);
-
+  const roleCheck = requireRole(["MANAGER", "ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   const halls = await prisma.hall.findMany({
-    orderBy: { id: "desc" }, // 👈 SVE sale
+    include: {
+      city: { select: { id: true, name: true } },
+      category: { select: { id: true, name: true } },
+    },
+    orderBy: { id: "desc" },
   });
 
   return NextResponse.json(halls);

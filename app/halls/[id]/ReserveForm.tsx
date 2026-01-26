@@ -13,14 +13,14 @@ import {
 
 export default function ReserveForm({
   hallId,
-  pricePerEvent,
+  pricePerHour,
 }: {
   hallId: number;
-  pricePerEvent: number; // tretiramo kao €/sat
+  pricePerHour: number; // €/sat
 }) {
   const { user } = useAuth();
 
-  const [dateISO, setDateISO] = useState(""); // YYYY-MM-DD
+  const [dateISO, setDateISO] = useState("");
   const [startHHMM, setStartHHMM] = useState("08:00");
   const [endHHMM, setEndHHMM] = useState("10:00");
   const [numberOfGuests, setNumberOfGuests] = useState(1);
@@ -38,8 +38,8 @@ export default function ReserveForm({
 
   const totalPrice = useMemo(() => {
     if (durationHours <= 0) return 0;
-    return durationHours * pricePerEvent;
-  }, [durationHours, pricePerEvent]);
+    return durationHours * pricePerHour;
+  }, [durationHours, pricePerHour]);
 
   function validate() {
     if (!user) return "Morate biti ulogovani da biste rezervisali salu.";
@@ -122,7 +122,6 @@ export default function ReserveForm({
         background: "var(--card-bg)",
       }}
     >
-      {/* datum */}
       <div style={{ display: "grid", gap: 6 }}>
         <label style={{ fontWeight: 700 }}>Datum</label>
         <input
@@ -138,7 +137,6 @@ export default function ReserveForm({
         )}
       </div>
 
-      {/* satnica*/}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div style={{ display: "grid", gap: 6 }}>
           <label style={{ fontWeight: 700 }}>Početak</label>
@@ -163,7 +161,6 @@ export default function ReserveForm({
         </div>
       </div>
 
-      {/* broj gostiju*/}
       <div style={{ display: "grid", gap: 6 }}>
         <label style={{ fontWeight: 700 }}>Broj gostiju</label>
         <input
@@ -174,7 +171,6 @@ export default function ReserveForm({
         />
       </div>
 
-      {/* rezime rezervacije */}
       <div
         style={{
           border: "1px solid var(--border-color)",
@@ -199,9 +195,7 @@ export default function ReserveForm({
       </button>
 
       {message && <p style={{ margin: 0 }}>{message}</p>}
-      {error && (
-        <p style={{ margin: 0, color: "crimson", fontWeight: 700 }}>{error}</p>
-      )}
+      {error && <p style={{ margin: 0, color: "crimson", fontWeight: 700 }}>{error}</p>}
     </form>
   );
 }

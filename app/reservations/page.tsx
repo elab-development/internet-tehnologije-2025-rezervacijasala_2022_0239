@@ -15,7 +15,7 @@ export type Reservation = {
   endDateTime: string;
   numberOfGuests: number;
   status: Status;
-  hall: { name: string; pricePerEvent: number };
+  hall: { name: string; pricePerHour: number };
   user?: { firstName?: string; lastName?: string };
 };
 
