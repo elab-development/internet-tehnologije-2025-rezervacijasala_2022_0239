@@ -1,7 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
+import { diffHours } from "@/lib/time";
 import { Reservation } from "./page";
 import { canModifyOrCancel, fmtDateTimeSR, statusLabel } from "./reservationUtils";
 
@@ -18,8 +20,20 @@ export default function ReservationCard({
 }) {
   const { user } = useAuth();
 
-  const canAction =
-    reservation.status === "ACTIVE" && canModifyOrCancel(reservation.startDateTime);
+  const canAction = reservation.status === "ACTIVE" && canModifyOrCancel(reservation.startDateTime);
+
+  // Trajanje (u satima) iz start/end ISO stringova
+  const durationHours = useMemo(() => {
+    const h = diffHours(reservation.startDateTime, reservation.endDateTime);
+    return h > 0 ? h : 0;
+  }, [reservation.startDateTime, reservation.endDateTime]);
+
+  // Ukupna cijena (kod tebe pricePerEvent tretiraš kao €/sat)
+  const totalPrice = useMemo(() => {
+    const pricePerHour = reservation.hall?.pricePerEvent ?? 0;
+    if (durationHours <= 0 || pricePerHour <= 0) return 0;
+    return durationHours * pricePerHour;
+  }, [durationHours, reservation.hall]);
 
   async function cancel() {
     if (!user) return;
@@ -33,11 +47,7 @@ export default function ReservationCard({
     if (!ok) return;
 
     try {
-      await apiFetch(
-        `/api/reservations/${reservation.id}`,
-        { method: "DELETE" },
-        { user }
-      );
+      await apiFetch(`/api/reservations/${reservation.id}`, { method: "DELETE" }, { user });
       onChanged();
     } catch (e: any) {
       alert(e?.message || "Greška pri otkazivanju");
@@ -48,9 +58,7 @@ export default function ReservationCard({
     <div className="card" style={{ display: "grid", gap: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "grid", gap: 6 }}>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>
-            Sala: {reservation.hall.name}
-          </div>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>Sala: {reservation.hall.name}</div>
 
           {isPrivileged && reservation.user && (
             <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
@@ -62,21 +70,24 @@ export default function ReservationCard({
           )}
 
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Od:</strong>{" "}
-            {fmtDateTimeSR(reservation.startDateTime)}
+            <strong style={{ color: "var(--text-main)" }}>Od:</strong> {fmtDateTimeSR(reservation.startDateTime)}
           </div>
+
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Do:</strong>{" "}
-            {fmtDateTimeSR(reservation.endDateTime)}
+            <strong style={{ color: "var(--text-main)" }}>Do:</strong> {fmtDateTimeSR(reservation.endDateTime)}
           </div>
+
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Broj gostiju:</strong>{" "}
-            {reservation.numberOfGuests}
+            <strong style={{ color: "var(--text-main)" }}>Broj gostiju:</strong> {reservation.numberOfGuests}
+          </div>
+
+          {/* ✅ NOVO: ukupna cena */}
+          <div style={{ color: "var(--text-muted)" }}>
+            <strong style={{ color: "var(--text-main)" }}>Ukupno:</strong> {totalPrice.toFixed(2)} €
           </div>
 
           <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Status:</strong>{" "}
-            {statusLabel(reservation.status)}
+            <strong style={{ color: "var(--text-main)" }}>Status:</strong> {statusLabel(reservation.status)}
           </div>
         </div>
       </div>

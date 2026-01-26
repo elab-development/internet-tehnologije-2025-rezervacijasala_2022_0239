@@ -15,9 +15,10 @@ export type Reservation = {
   endDateTime: string;
   numberOfGuests: number;
   status: Status;
-  hall: { name: string };
-  user?: { firstName?: string; lastName?: string }; // za admin/manager
+  hall: { name: string; pricePerEvent: number };
+  user?: { firstName?: string; lastName?: string };
 };
+
 
 export default function MyReservationsPage() {
   const { user } = useAuth();

@@ -55,6 +55,29 @@ export default function EditReservationModal({
     return { startISO, endISO };
   }
 
+    const durationHours = useMemo(() => {
+    try {
+      const { startISO, endISO } = computeISO();
+      const h = diffHours(startISO, endISO);
+      return h > 0 ? h : 0;
+    } catch {
+      return 0;
+    }
+  }, [dateISO, startTime, endTime]);
+
+  const durationLabel = useMemo(() => {
+    if (durationHours <= 0) return "—";
+    return `${durationHours.toFixed(durationHours % 1 === 0 ? 0 : 1)} h`;
+  }, [durationHours]);
+
+  const totalPrice = useMemo(() => {
+    // kod tebe pricePerEvent tretiraš kao €/sat (kao u ReserveForm)
+    const pricePerHour = reservation.hall?.pricePerEvent ?? 0;
+    if (durationHours <= 0 || pricePerHour <= 0) return 0;
+    return durationHours * pricePerHour;
+  }, [durationHours, reservation.hall]);
+
+
   async function save() {
     if (!user) return;
 
@@ -106,15 +129,7 @@ export default function EditReservationModal({
     }
   }
 
-  const preview = (() => {
-    try {
-      const { startISO, endISO } = computeISO();
-      const h = diffHours(startISO, endISO);
-      return h > 0 ? `${h.toFixed(h % 1 === 0 ? 0 : 1)} h` : "—";
-    } catch {
-      return "—";
-    }
-  })();
+  
 
   return (
     <div
@@ -169,9 +184,6 @@ export default function EditReservationModal({
                 ))}
               </select>
 
-              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                Ako je kraj manji od početka, tretira se kao <strong>sutradan</strong>.
-              </div>
             </div>
           </div>
 
@@ -180,8 +192,13 @@ export default function EditReservationModal({
             <input type="number" min={1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} />
           </div>
 
-          <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
-            Trajanje: <strong style={{ color: "var(--text-main)" }}>{preview}</strong>
+          <div style={{ display: "flex", gap: 18, flexWrap: "wrap", fontSize: 14, color: "var(--text-muted)" }}>
+            <div>
+              Trajanje: <strong style={{ color: "var(--text-main)" }}>{durationLabel}</strong>
+            </div>
+            <div>
+              Ukupno: <strong style={{ color: "var(--text-main)" }}>{totalPrice.toFixed(2)} €</strong>
+            </div>
           </div>
 
           {err && <p style={{ margin: 0, color: "crimson", fontWeight: 700 }}>{err}</p>}
