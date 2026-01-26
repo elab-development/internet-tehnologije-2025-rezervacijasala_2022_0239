@@ -34,7 +34,7 @@ model Hall {
   pricePerEvent    Float
   isActive         Boolean           @default(true)
   reservations     Reservation[]
-  unavailableDates UnavailableDate[]
+
 }
 
 model Reservation {

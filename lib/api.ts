@@ -2,8 +2,8 @@ type AuthState = {
   user?: {
     id: number;
     role: string;
+    };
   };
-};
 
 export async function apiFetch(
   url: string,

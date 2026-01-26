@@ -42,18 +42,8 @@ CREATE TABLE `Reservation` (
     `startDateTime` DATETIME(3) NOT NULL,
     `endDateTime` DATETIME(3) NOT NULL,
     `numberOfGuests` INTEGER NOT NULL,
-    `status` VARCHAR(191) NOT NULL,
+    `status` ENUM('ACTIVE', 'CANCELLED', 'COMPLETED') NOT NULL DEFAULT 'ACTIVE',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `UnavailableDate` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `hallId` INTEGER NOT NULL,
-    `date` DATETIME(3) NOT NULL,
-    `reason` VARCHAR(191) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -66,6 +56,3 @@ ALTER TABLE `Reservation` ADD CONSTRAINT `Reservation_userId_fkey` FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE `Reservation` ADD CONSTRAINT `Reservation_hallId_fkey` FOREIGN KEY (`hallId`) REFERENCES `Hall`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `UnavailableDate` ADD CONSTRAINT `UnavailableDate_hallId_fkey` FOREIGN KEY (`hallId`) REFERENCES `Hall`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
