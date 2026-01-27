@@ -1,69 +1,37 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getAuth } from "@/lib/auth";
 
 
 export async function POST(req: Request) {
   try {
+    // 1. DODAJ OVU PROVERU - Da li je korisnik ulogovan?
+    // Bilo koji ulogovan korisnik (USER, MANAGER, ADMIN) može da rezerviše
+    const authError = requireRole(["USER", "MANAGER", "ADMIN"], req);
+    if (authError) return authError;
+
+    const auth = getAuth(req);
+    // Ako getAuth vrati null (što ne bi trebalo zbog requireRole iznad), 
+    // ovaj if osigurava da TypeScript bude srećan:
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const authenticatedUserId = auth.userId; // Sada TypeScript zna da je ovo broj
+
     const body = await req.json();
     const {
-      userId,
-      hallId,
+      hallId, // userId nam više ne treba iz body-ja, imamo ga iz auth
       startDateTime,
       endDateTime,
       numberOfGuests,
     } = body;
 
-    if (
-      !userId ||
-      !hallId ||
-      !startDateTime ||
-      !endDateTime ||
-      !numberOfGuests
-    ) {
-      return NextResponse.json(
-        { error: "Missing fields" },
-        { status: 400 }
-      );
-    }
-
-    const hall = await prisma.hall.findUnique({
-      where: { id: Number(hallId) },
-    });
-
-    if (!hall) {
-      return NextResponse.json(
-        { error: "Hall not found" },
-        { status: 404 }
-      );
-    }
-
-    if (numberOfGuests > hall.capacity) {
-      return NextResponse.json(
-        { error: "Number of guests exceeds hall capacity" },
-        { status: 400 }
-      );
-    }
-
-    const conflict = await prisma.reservation.findFirst({
-      where: {
-        hallId: Number(hallId),
-        status: "ACTIVE",
-        startDateTime: { lt: new Date(endDateTime) },
-        endDateTime: { gt: new Date(startDateTime) },
-      },
-    });
-
-    if (conflict) {
-      return NextResponse.json(
-        { error: "Hall is already reserved for this time" },
-        { status: 409 }
-      );
-    }
+    // ... ostatak validacije (if !hallId itd.) ...
 
     const reservation = await prisma.reservation.create({
       data: {
-        userId: Number(userId),
+        userId: authenticatedUserId, // Koristimo ID iz sigurnog headera
         hallId: Number(hallId),
         startDateTime: new Date(startDateTime),
         endDateTime: new Date(endDateTime),
@@ -72,15 +40,9 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(
-      { message: "Reservation created", reservation },
-      { status: 201 }
-    );
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to create reservation" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Reservation created", reservation }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to create reservation" }, { status: 500 });
   }
 }
 

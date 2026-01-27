@@ -5,10 +5,10 @@ import { getAuth } from "@/lib/auth";
 const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
 
 
-export async function GET(
-  _req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
+  const auth = getAuth(req); // Dodaj ovo
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  
   const { id } = await context.params;
   const reservationId = Number(id);
 

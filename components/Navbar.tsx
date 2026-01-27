@@ -63,7 +63,7 @@ export default function Navbar() {
               }}
             >
               
-              <Link href="/reservations">Moje rezervacije</Link>
+              <Link href="/reservations">Rezervacije</Link>
 
               {/* Dropdown */}
               <button

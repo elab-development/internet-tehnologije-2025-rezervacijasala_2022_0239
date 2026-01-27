@@ -50,7 +50,6 @@ export default function ReservationCard({
       await apiFetch(
         `/api/reservations/${reservation.id}`,
         { method: "DELETE" },
-        { user }
       );
       onChanged();
     } catch (e: any) {

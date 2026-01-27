@@ -114,7 +114,6 @@ export default function EditReservationModal({
             numberOfGuests: guests,
           }),
         },
-        { user }
       );
 
       onSaved();

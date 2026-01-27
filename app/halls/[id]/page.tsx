@@ -32,7 +32,7 @@ export default function HallDetailsPage({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch(`/api/halls/${id}`, {}, user ? { user } : undefined)
+    apiFetch(`/api/halls/${id}`)
       .then((data) => setHall(data))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -75,6 +75,12 @@ export default function HallDetailsPage({
       />
 
       <h1>{hall.name}</h1>
+      {hall.description?.trim() ? (
+      <p style={{ marginTop: 8, color: "var(--text-muted)", lineHeight: 1.6 }}>
+        {hall.description}
+      </p>
+    ) : null}
+
 
       <p>Grad: {hall.city?.name}</p>
       <p>Kategorija: {hall.category?.name}</p>

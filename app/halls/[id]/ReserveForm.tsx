@@ -94,7 +94,6 @@ export default function ReserveForm({
             numberOfGuests,
           }),
         },
-        { user }
       );
 
       setMessage("Rezervacija uspešno kreirana ✅");

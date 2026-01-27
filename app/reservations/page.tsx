@@ -42,7 +42,7 @@ export default function MyReservationsPage() {
     const url = isPrivileged ? "/api/reservations" : "/api/reservations/my";
 
     try {
-      const data = await apiFetch(url, {}, { user });
+      const data = await apiFetch(url);
       setReservations(data);
     } catch (e: any) {
       setError(e?.message || "Greška pri učitavanju rezervacija");
@@ -71,7 +71,7 @@ export default function MyReservationsPage() {
 
   return (
     <main style={{ padding: 24, maxWidth: 980, margin: "0 auto" }}>
-      <h1>{isPrivileged ? "Rezervacije (svi korisnici)" : "Moje rezervacije"}</h1>
+      <h1>{isPrivileged ? "Rezervacije svih korisnika" : "Moje rezervacije"}</h1>
 
       {reservations.length === 0 ? (
         <p>Nemate nijednu rezervaciju.</p>
