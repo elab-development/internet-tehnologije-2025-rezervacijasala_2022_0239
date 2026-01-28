@@ -14,9 +14,11 @@ import {
 export default function ReserveForm({
   hallId,
   pricePerHour,
+  capacity,
 }: {
   hallId: number;
-  pricePerHour: number; // €/sat
+  pricePerHour: number;
+  capacity: number;
 }) {
   const { user } = useAuth();
 
@@ -46,10 +48,16 @@ export default function ReserveForm({
     if (!dateISO) return "Izaberi datum.";
 
     const hours = calcDurationHoursCrossMidnight(startHHMM, endHHMM);
-    if (hours <= 0) return "Kraj mora biti nakon početka (može i preko ponoći).";
+    if (hours <= 0) return "Kraj mora biti nakon početka.";
     if (hours < 1) return "Minimalno trajanje je 1 sat.";
 
-    if (!numberOfGuests || numberOfGuests < 1) return "Unesi ispravan broj gostiju.";
+    if (!numberOfGuests || numberOfGuests < 1) {
+      return "Unesi ispravan broj gostiju.";
+    }
+
+    if (numberOfGuests > capacity) {
+      return `Broj gostiju premašuje kapacitet sale (${capacity}).`;
+    }
 
     return null;
   }
@@ -64,15 +72,14 @@ export default function ReserveForm({
       setError(v);
       return;
     }
+
     if (!user) return;
 
-    const crossesMidnight =
-      calcDurationHoursCrossMidnight(startHHMM, endHHMM) > 0 &&
-      (() => {
-        const [sh, sm] = startHHMM.split(":").map(Number);
-        const [eh, em] = endHHMM.split(":").map(Number);
-        return eh * 60 + em <= sh * 60 + sm;
-      })();
+    const crossesMidnight = (() => {
+      const [sh, sm] = startHHMM.split(":").map(Number);
+      const [eh, em] = endHHMM.split(":").map(Number);
+      return eh * 60 + em <= sh * 60 + sm;
+    })();
 
     const startISO = toISOStringFromDateAndTime(dateISO, startHHMM);
     const endISO = toISOStringFromDateAndTime(dateISO, endHHMM, {
@@ -82,19 +89,15 @@ export default function ReserveForm({
     try {
       setLoading(true);
 
-      await apiFetch(
-        "/api/reservations",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            userId: user.id,
-            hallId,
-            startDateTime: startISO,
-            endDateTime: endISO,
-            numberOfGuests,
-          }),
-        },
-      );
+      await apiFetch("/api/reservations", {
+        method: "POST",
+        body: JSON.stringify({
+          hallId,
+          startDateTime: startISO,
+          endDateTime: endISO,
+          numberOfGuests,
+        }),
+      });
 
       setMessage("Rezervacija uspešno kreirana ✅");
       setDateISO("");
@@ -161,10 +164,13 @@ export default function ReserveForm({
       </div>
 
       <div style={{ display: "grid", gap: 6 }}>
-        <label style={{ fontWeight: 700 }}>Broj gostiju</label>
+        <label style={{ fontWeight: 700 }}>
+          Broj gostiju
+        </label>
         <input
           type="number"
           min={1}
+          max={capacity}
           value={numberOfGuests}
           onChange={(e) => setNumberOfGuests(Number(e.target.value))}
         />
@@ -181,20 +187,16 @@ export default function ReserveForm({
         }}
       >
         <div style={{ fontWeight: 800 }}>Sažetak</div>
-        <div style={{ fontSize: 14, opacity: 0.9 }}>
-          Trajanje: <b>{dateISO ? durationHours : 0} h</b>
-        </div>
-        <div style={{ fontSize: 14, opacity: 0.9 }}>
-          Ukupno: <b>{dateISO ? totalPrice.toFixed(2) : "0.00"} €</b>
-        </div>
+        <div>Trajanje: <b>{dateISO ? durationHours : 0} h</b></div>
+        <div>Ukupno: <b>{dateISO ? totalPrice.toFixed(2) : "0.00"} €</b></div>
       </div>
 
       <button type="submit" disabled={loading}>
         {loading ? "Rezervišem..." : "Rezerviši"}
       </button>
 
-      {message && <p style={{ margin: 0 }}>{message}</p>}
-      {error && <p style={{ margin: 0, color: "crimson", fontWeight: 700 }}>{error}</p>}
+      {message && <p>{message}</p>}
+      {error && <p style={{ color: "crimson", fontWeight: 700 }}>{error}</p>}
     </form>
   );
 }

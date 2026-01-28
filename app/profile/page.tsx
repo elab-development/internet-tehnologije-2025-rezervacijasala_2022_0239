@@ -7,7 +7,7 @@ import Button from "../../components/Button";
 import Input from "../../components/Input";
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPass, setIsChangingPass] = useState(false); // Novo stanje
@@ -31,38 +31,75 @@ export default function ProfilePage() {
   const u = user;
 
   // Funkcija za promenu imena i prezimena
-  async function handleUpdateInfo() {
-    setMessage("");
-    try {
-      await apiFetch(`/api/users/${u.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ firstName, lastName }), // Šaljemo samo ime i prezime
-      });
-      setMessage("Podaci uspješno sačuvani! ✅");
-      setIsEditing(false);
-    } catch (err: any) {
-      setMessage(err.message || "Greška pri čuvanju.");
-    }
+ async function handleUpdateInfo() {
+  setMessage("");
+
+  if (!firstName.trim() || !lastName.trim()) {
+    setMessage("Ime i prezime su obavezni.");
+    return;
   }
 
-  // Funkcija za promenu šifre
-  async function handleChangePassword() {
-    setMessage("");
-    if (!oldPassword || !newPassword) return setMessage("Oba polja su obavezna.");
-    
-    try {
-      await apiFetch(`/api/users/${u.id}/password`, {
-        method: "PUT",
-        body: JSON.stringify({ oldPassword, newPassword }),
-      });
-      setMessage("Šifra uspešno promenjena!");
-      setIsChangingPass(false);
-      setOldPassword("");
-      setNewPassword("");
-    } catch (err: any) {
-      setMessage(err.message || "Greška pri promeni šifre.");
-    }
+  try {
+    const updatedUser = await apiFetch(`/api/users/${u.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      }),
+    });
+
+    // ✅ ODMAH AŽURIRAMO AUTH STATE
+    updateUser({
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+    });
+
+    setMessage("Podaci uspešno sačuvani! ✅");
+    setIsEditing(false);
+  } catch (err: any) {
+    setMessage(err.message || "Greška pri čuvanju.");
   }
+}
+
+
+
+  async function handleChangePassword() {
+  setMessage("");
+
+  if (!oldPassword || !newPassword) {
+    setMessage("Oba polja su obavezna.");
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    setMessage("Nova šifra mora imati najmanje 6 karaktera.");
+    return;
+  }
+
+  try {
+    await apiFetch(`/api/users/${u.id}/password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": String(u.id),
+        "x-user-role": u.role,
+      },
+      body: JSON.stringify({
+        oldPassword,
+        newPassword,
+      }),
+    });
+
+    setMessage("Šifra uspešno promenjena! 🔐");
+    setIsChangingPass(false);
+    setOldPassword("");
+    setNewPassword("");
+  } catch (err: any) {
+    setMessage(err.message || "Greška pri promeni šifre.");
+  }
+}
+
+
 
   return (
     <main style={{ padding: "60px 24px", maxWidth: 550, margin: "0 auto", minHeight: "80vh" }}>

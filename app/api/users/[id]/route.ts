@@ -1,53 +1,82 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getAuth } from "@/lib/auth";
 
-// --- PUT METODA ZA IZMJENU PODATAKA (Ime i prezime) ---
+/**
+ * PUT /api/users/[id]
+ * USER može menjati samo sebe
+ * ADMIN može menjati svakoga
+ */
 export async function PUT(
   req: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params; // ⬅️ OVO JE KLJUČ
     const userId = Number(id);
+
+    if (Number.isNaN(userId)) {
+      return NextResponse.json(
+        { error: "Invalid user id" },
+        { status: 400 }
+      );
+    }
+
     const { firstName, lastName } = await req.json();
 
     if (!firstName || !lastName) {
-      return NextResponse.json({ error: "Ime i prezime su obavezni" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Ime i prezime su obavezni" },
+        { status: 400 }
+      );
     }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { firstName, lastName },
-      include: { role: true } // Uključujemo rolu da bi frontend dobio kompletan objekat
+      include: { role: true },
     });
 
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("Greška pri ažuriranju korisnika:", error);
-    return NextResponse.json({ error: "Greška na serveru" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Greška na serveru" },
+      { status: 500 }
+    );
   }
 }
 
-// --- TVOJA POSTOJEĆA DELETE METODA ---
+
+/**
+ * DELETE /api/users/[id]
+ * Samo ADMIN
+ */
 export async function DELETE(
   req: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  // Ovde ostaje tvoj kod koji si poslala...
+  // 🔐 samo ADMIN
   const roleCheck = requireRole(["ADMIN"], req);
   if (roleCheck) return roleCheck;
 
-  const { id } = context.params;
+  // 🔑 KLJUČNA ISPRAVKA
+  const { id } = await context.params;
   const userId = Number(id);
 
   if (Number.isNaN(userId)) {
-    return NextResponse.json({ error: "Invalid user id" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid user id" },
+      { status: 400 }
+    );
   }
 
-  const authUser = req.headers.get("x-user-id");
-  if (authUser && Number(authUser) === userId) {
-    return NextResponse.json({ error: "You cannot delete your own account" }, { status: 400 });
+  const authUserId = Number(req.headers.get("x-user-id"));
+  if (authUserId === userId) {
+    return NextResponse.json(
+      { error: "Ne možeš obrisati sopstveni nalog" },
+      { status: 400 }
+    );
   }
 
   const reservationsCount = await prisma.reservation.count({
@@ -55,14 +84,26 @@ export async function DELETE(
   });
 
   if (reservationsCount > 0) {
-    return NextResponse.json({ error: "Korisnik ima rezervacije i ne moze biti izbrisan" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Korisnik ima rezervacije i ne može biti obrisan" },
+      { status: 400 }
+    );
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
   if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "User not found" },
+      { status: 404 }
+    );
   }
 
-  await prisma.user.delete({ where: { id: userId } });
+  await prisma.user.delete({
+    where: { id: userId },
+  });
+
   return NextResponse.json({ message: "User deleted" });
 }

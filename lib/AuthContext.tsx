@@ -16,6 +16,7 @@ type AuthContextType = {
   isLoggedIn: boolean;
   login: (user: User) => void;
   logout: () => void;
+  updateUser: (data: Partial<User>) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,6 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  const updateUser = (data: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...data } : prev));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -49,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoggedIn: !!user,
         login,
         logout,
+        updateUser,
       }}
     >
       {children}

@@ -2,47 +2,113 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, getAuth } from "@/lib/auth";
 
-
 export async function POST(req: Request) {
   try {
-    // 1. DODAJ OVU PROVERU - Da li je korisnik ulogovan?
-    // Bilo koji ulogovan korisnik (USER, MANAGER, ADMIN) može da rezerviše
-    const authError = requireRole(["USER", "MANAGER", "ADMIN"], req);
-    if (authError) return authError;
+    // ✅ svi ulogovani korisnici
+    const roleCheck = requireRole(["USER", "MANAGER", "ADMIN"], req);
+    if (roleCheck) return roleCheck;
 
     const auth = getAuth(req);
-    // Ako getAuth vrati null (što ne bi trebalo zbog requireRole iznad), 
-    // ovaj if osigurava da TypeScript bude srećan:
     if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const authenticatedUserId = auth.userId; // Sada TypeScript zna da je ovo broj
+    const userId = auth.userId;
 
     const body = await req.json();
-    const {
-      hallId, // userId nam više ne treba iz body-ja, imamo ga iz auth
-      startDateTime,
-      endDateTime,
-      numberOfGuests,
-    } = body;
+    const { hallId, startDateTime, endDateTime, numberOfGuests } = body;
 
-    // ... ostatak validacije (if !hallId itd.) ...
+    // ✅ obavezna polja
+    if (!hallId || !startDateTime || !endDateTime || !numberOfGuests) {
+      return NextResponse.json(
+        { error: "Missing fields" },
+        { status: 400 }
+      );
+    }
 
+    const start = new Date(startDateTime);
+    const end = new Date(endDateTime);
+
+    if (end <= start) {
+      return NextResponse.json(
+        { error: "Kraj mora biti posle početka" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ provera da sala postoji
+    const hall = await prisma.hall.findUnique({
+      where: { id: Number(hallId) },
+    });
+
+    if (!hall) {
+      return NextResponse.json(
+        { error: "Sala ne postoji" },
+        { status: 404 }
+      );
+    }
+
+    // ✅ provera kapaciteta
+    if (numberOfGuests > hall.capacity) {
+      return NextResponse.json(
+        {
+          error: `Broj gostiju premašuje kapacitet sale (${hall.capacity})`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // 🚨 KLJUČNA PROVERA PREKLAPANJA TERMINA
+    const conflict = await prisma.reservation.findFirst({
+      where: {
+        hallId: Number(hallId),
+        status: "ACTIVE",
+        AND: [
+          {
+            startDateTime: {
+              lt: end,
+            },
+          },
+          {
+            endDateTime: {
+              gt: start,
+            },
+          },
+        ],
+      },
+    });
+
+    if (conflict) {
+      return NextResponse.json(
+        {
+          error: "Sala je već rezervisana u tom terminu",
+        },
+        { status: 409 } // Conflict
+      );
+    }
+
+    // ✅ kreiranje rezervacije
     const reservation = await prisma.reservation.create({
       data: {
-        userId: authenticatedUserId, // Koristimo ID iz sigurnog headera
+        userId,
         hallId: Number(hallId),
-        startDateTime: new Date(startDateTime),
-        endDateTime: new Date(endDateTime),
+        startDateTime: start,
+        endDateTime: end,
         numberOfGuests,
         status: "ACTIVE",
       },
     });
 
-    return NextResponse.json({ message: "Reservation created", reservation }, { status: 201 });
+    return NextResponse.json(
+      { message: "Reservation created", reservation },
+      { status: 201 }
+    );
   } catch (error) {
-    return NextResponse.json({ error: "Failed to create reservation" }, { status: 500 });
+    console.error(error);
+    return NextResponse.json(
+      { error: "Failed to create reservation" },
+      { status: 500 }
+    );
   }
 }
 

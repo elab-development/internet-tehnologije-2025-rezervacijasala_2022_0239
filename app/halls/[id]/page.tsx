@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ReserveForm from "./ReserveForm";
 import { apiFetch } from "@/lib/api";
@@ -19,6 +19,11 @@ type Hall = {
   category: { id: number; name: string };
 };
 
+type ReservationSlot = {
+  startDateTime: string;
+  endDateTime: string;
+};
+
 export default function HallDetailsPage({
   params,
 }: {
@@ -31,12 +36,61 @@ export default function HallDetailsPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [reservedSlots, setReservedSlots] = useState<ReservationSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(true);
+
+  /* ============================
+     FETCH SALE
+     ============================ */
   useEffect(() => {
     apiFetch(`/api/halls/${id}`)
-      .then((data) => setHall(data))
+      .then(setHall)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [id, user]);
+  }, [id]);
+
+  /* ============================
+     FETCH ZAUZETIH TERMINA
+     ============================ */
+  useEffect(() => {
+    apiFetch(`/api/halls/${id}/reservations`)
+      .then(setReservedSlots)
+      .catch(() => {})
+      .finally(() => setLoadingSlots(false));
+  }, [id]);
+
+  /* ============================
+     FORMAT HELPERS
+     ============================ */
+  function formatDate(dateISO: string) {
+    return new Date(dateISO).toLocaleDateString("sr-RS", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  }
+
+  function formatTime(dateISO: string) {
+    return new Date(dateISO).toLocaleTimeString("sr-RS", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  /* ============================
+     GROUP BY DATE
+     ============================ */
+  const groupedByDate = useMemo(() => {
+    return reservedSlots.reduce<Record<string, ReservationSlot[]>>(
+      (acc, slot) => {
+        const dateKey = slot.startDateTime.split("T")[0];
+        if (!acc[dateKey]) acc[dateKey] = [];
+        acc[dateKey].push(slot);
+        return acc;
+      },
+      {}
+    );
+  }, [reservedSlots]);
 
   if (loading) {
     return (
@@ -46,7 +100,7 @@ export default function HallDetailsPage({
     );
   }
 
-  if (error) {
+  if (error || !hall) {
     return (
       <main style={{ padding: 24 }}>
         <h1>Sala nije pronađena</h1>
@@ -54,8 +108,6 @@ export default function HallDetailsPage({
       </main>
     );
   }
-
-  if (!hall) return null;
 
   return (
     <main style={{ padding: 24, maxWidth: 800, margin: "0 auto" }}>
@@ -75,31 +127,96 @@ export default function HallDetailsPage({
       />
 
       <h1>{hall.name}</h1>
-      {hall.description?.trim() ? (
-      <p style={{ marginTop: 8, color: "var(--text-muted)", lineHeight: 1.6 }}>
-        {hall.description}
-      </p>
-    ) : null}
 
+      {hall.description?.trim() && (
+        <p style={{ marginTop: 8, color: "var(--text-muted)", lineHeight: 1.6 }}>
+          {hall.description}
+        </p>
+      )}
 
       <p>Grad: {hall.city?.name}</p>
       <p>Kategorija: {hall.category?.name}</p>
-
       <p>Kapacitet: {hall.capacity}</p>
-      <p>Cijena po satu: {hall.pricePerHour} €</p>
+      <p>Cena po satu: {hall.pricePerHour} €</p>
 
       <p>
         Ima binu: <strong>{hall.hasStage ? "Da" : "Ne"}</strong>
       </p>
+
       <p>
         Tip:{" "}
-        <strong>{hall.isClosed ? "U zatvorenom prostoru" : "Na otvorenom"}</strong>
+        <strong>
+          {hall.isClosed ? "U zatvorenom prostoru" : "Na otvorenom"}
+        </strong>
       </p>
 
       <hr style={{ margin: "24px 0" }} />
 
-      <h2>Rezerviši ovu salu</h2>
-      <ReserveForm hallId={hall.id} pricePerHour={hall.pricePerHour} />
+      <hr style={{ margin: "24px 0" }} />
+
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 32,
+    alignItems: "start",
+  }}
+>
+  {/* LEVO – REZERVACIJA */}
+  <div>
+    <h2>Rezerviši ovu salu</h2>
+
+    <ReserveForm
+      hallId={hall.id}
+      pricePerHour={hall.pricePerHour}
+      capacity={hall.capacity}
+    />
+  </div>
+
+  {/* DESNO – ZAUZETI TERMINI */}
+  <div>
+    <h3>Zauzeti termini</h3>
+
+    {loadingSlots ? (
+      <p>Učitavanje termina...</p>
+    ) : reservedSlots.length === 0 ? (
+      <p style={{ color: "green", fontWeight: 600 }}>
+        ✅ Sala je trenutno slobodna.
+      </p>
+    ) : (
+      <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
+        {Object.entries(groupedByDate).map(([date, slots]) => (
+          <div
+            key={date}
+            style={{
+              border: "1px solid #e5e7eb",
+              borderRadius: 12,
+              padding: 14,
+              background: "#fff7f7",
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>
+              📅 {formatDate(date)}
+            </div>
+
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {slots.map((slot, i) => (
+                <li
+                  key={i}
+                  style={{ color: "#b91c1c", fontWeight: 600 }}
+                >
+                  ⛔ {formatTime(slot.startDateTime)} –{" "}
+                  {formatTime(slot.endDateTime)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
     </main>
   );
 }
