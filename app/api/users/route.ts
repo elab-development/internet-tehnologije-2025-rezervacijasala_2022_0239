@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth";
 
 export async function GET(req: Request) {
   
-  const roleCheck = requireRole(["ADMIN"], req);
+  const roleCheck = await requireRole(["ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   try {

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 
 export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
-  const roleCheck = requireRole(["MANAGER", "ADMIN"], req);
+  const roleCheck = await requireRole(["MANAGER", "ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   const { id } = await context.params;

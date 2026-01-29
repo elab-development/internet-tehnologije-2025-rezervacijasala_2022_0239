@@ -79,11 +79,6 @@ export default function ProfilePage() {
   try {
     await apiFetch(`/api/users/${u.id}/password`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-id": String(u.id),
-        "x-user-role": u.role,
-      },
       body: JSON.stringify({
         oldPassword,
         newPassword,

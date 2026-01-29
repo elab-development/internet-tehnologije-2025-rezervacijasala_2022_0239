@@ -26,7 +26,7 @@ export async function GET(_req: Request, context: { params: Promise<{ id: string
 }
 
 export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
-  const roleCheck = requireRole(["MANAGER", "ADMIN"], req);
+  const roleCheck = await requireRole(["MANAGER", "ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   const { id } = await context.params;
@@ -113,7 +113,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
 }
 
 export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
-  const roleCheck = requireRole(["MANAGER", "ADMIN"], req);
+  const roleCheck = await requireRole(["MANAGER", "ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   const { id } = await context.params;

@@ -8,7 +8,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const roleCheck = requireRole(["MANAGER", "ADMIN"], req);
+  const roleCheck = await requireRole(["MANAGER", "ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   const body = await req.json();

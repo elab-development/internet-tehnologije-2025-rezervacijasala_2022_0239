@@ -7,7 +7,7 @@ import { requireRole } from "@/lib/auth";
  * MANAGER / ADMIN
  */
 export async function GET(req: Request) {
-  const roleCheck = requireRole(["MANAGER", "ADMIN"], req);
+  const roleCheck = await requireRole(["MANAGER", "ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   const halls = await prisma.hall.findMany({

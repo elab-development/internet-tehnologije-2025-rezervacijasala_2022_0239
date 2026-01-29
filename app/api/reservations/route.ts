@@ -5,10 +5,10 @@ import { requireRole, getAuth } from "@/lib/auth";
 export async function POST(req: Request) {
   try {
     // ✅ svi ulogovani korisnici
-    const roleCheck = requireRole(["USER", "MANAGER", "ADMIN"], req);
+    const roleCheck = await requireRole(["USER", "MANAGER", "ADMIN"], req);
     if (roleCheck) return roleCheck;
 
-    const auth = getAuth(req);
+    const auth = await getAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const roleCheck = requireRole(["ADMIN", "MANAGER"], req);
+  const roleCheck = await requireRole(["ADMIN", "MANAGER"], req);
   if (roleCheck) return roleCheck;
 
   const reservations = await prisma.reservation.findMany({

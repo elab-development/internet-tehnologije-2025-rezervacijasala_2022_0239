@@ -31,6 +31,16 @@ export async function PUT(
       );
     }
 
+    // 🔐 autorizacija: USER/MANAGER mogu menjati samo sebe; ADMIN može bilo koga
+    const auth = await getAuth(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (auth.role !== "ADMIN" && auth.userId !== userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { firstName, lastName },
@@ -57,7 +67,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   // 🔐 samo ADMIN
-  const roleCheck = requireRole(["ADMIN"], req);
+  const roleCheck = await requireRole(["ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   // 🔑 KLJUČNA ISPRAVKA
@@ -71,7 +81,8 @@ export async function DELETE(
     );
   }
 
-  const authUserId = Number(req.headers.get("x-user-id"));
+  const auth = await getAuth(req);
+  const authUserId = auth?.userId;
   if (authUserId === userId) {
     return NextResponse.json(
       { error: "Ne možeš obrisati sopstveni nalog" },
