@@ -39,9 +39,6 @@ export default function HallDetailsPage({
   const [reservedSlots, setReservedSlots] = useState<ReservationSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
 
-  /* ============================
-     FETCH SALE
-     ============================ */
   useEffect(() => {
     apiFetch(`/api/halls/${id}`)
       .then(setHall)
@@ -49,9 +46,6 @@ export default function HallDetailsPage({
       .finally(() => setLoading(false));
   }, [id]);
 
-  /* ============================
-     FETCH ZAUZETIH TERMINA
-     ============================ */
   useEffect(() => {
     apiFetch(`/api/halls/${id}/reservations`)
       .then(setReservedSlots)
@@ -59,9 +53,7 @@ export default function HallDetailsPage({
       .finally(() => setLoadingSlots(false));
   }, [id]);
 
-  /* ============================
-     FORMAT HELPERS
-     ============================ */
+
   function formatDate(dateISO: string) {
     return new Date(dateISO).toLocaleDateString("sr-RS", {
       day: "2-digit",
@@ -77,9 +69,7 @@ export default function HallDetailsPage({
     });
   }
 
-  /* ============================
-     GROUP BY DATE
-     ============================ */
+
   const groupedByDate = useMemo(() => {
     return reservedSlots.reduce<Record<string, ReservationSlot[]>>(
       (acc, slot) => {
@@ -181,7 +171,7 @@ export default function HallDetailsPage({
       <p>Učitavanje termina...</p>
     ) : reservedSlots.length === 0 ? (
       <p style={{ color: "green", fontWeight: 600 }}>
-        ✅ Sala je trenutno slobodna.
+        Sala je trenutno slobodna.
       </p>
     ) : (
       <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
@@ -196,7 +186,7 @@ export default function HallDetailsPage({
             }}
           >
             <div style={{ fontWeight: 700, marginBottom: 8 }}>
-              📅 {formatDate(date)}
+               {formatDate(date)}
             </div>
 
             <ul style={{ margin: 0, paddingLeft: 18 }}>
@@ -205,7 +195,7 @@ export default function HallDetailsPage({
                   key={i}
                   style={{ color: "#b91c1c", fontWeight: 600 }}
                 >
-                  ⛔ {formatTime(slot.startDateTime)} –{" "}
+                   {formatTime(slot.startDateTime)} –{" "}
                   {formatTime(slot.endDateTime)}
                 </li>
               ))}

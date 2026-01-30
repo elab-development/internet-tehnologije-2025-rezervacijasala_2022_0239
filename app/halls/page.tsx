@@ -58,15 +58,15 @@ export default function HallsPage() {
   // FILTER LOGIKA
   const filteredHalls = useMemo(() => {
     return halls.filter((hall) => {
-      // 🔍 Naziv
+      // Naziv
       if (search && !hall.name.toLowerCase().includes(search.toLowerCase())) return false;
-      // 💰 Cena
+      // Cena
       if (maxPrice !== "" && hall.pricePerHour > maxPrice) return false; // Ispravljeno: ako je cena VEĆA od max, sakrij
-      // 🎤 Bina
+      // Bina
       if (hasStageOnly && !hall.hasStage) return false;
-      // 🌆 Grad
+      // Grad
       if (selectedCity !== "ALL" && hall.city?.name !== selectedCity) return false;
-      // 🚪 Tip
+      // Tip
       if (spaceType === "OPEN" && hall.isClosed) return false;
       if (spaceType === "CLOSED" && !hall.isClosed) return false;
 

@@ -12,7 +12,7 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params; // ⬅️ OVO JE KLJUČ
+    const { id } = await context.params; 
     const userId = Number(id);
 
     if (Number.isNaN(userId)) {
@@ -31,7 +31,7 @@ export async function PUT(
       );
     }
 
-    // 🔐 autorizacija: USER/MANAGER mogu menjati samo sebe; ADMIN može bilo koga
+    // autorizacija: USER/MANAGER mogu menjati samo sebe; ADMIN može bilo koga
     const auth = await getAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -57,20 +57,14 @@ export async function PUT(
   }
 }
 
-
-/**
- * DELETE /api/users/[id]
- * Samo ADMIN
- */
 export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  // 🔐 samo ADMIN
+  // samo ADMIN
   const roleCheck = await requireRole(["ADMIN"], req);
   if (roleCheck) return roleCheck;
 
-  // 🔑 KLJUČNA ISPRAVKA
   const { id } = await context.params;
   const userId = Number(id);
 

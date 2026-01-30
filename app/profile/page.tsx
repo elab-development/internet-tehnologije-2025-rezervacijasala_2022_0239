@@ -48,7 +48,7 @@ export default function ProfilePage() {
       }),
     });
 
-    // ✅ ODMAH AŽURIRAMO AUTH STATE
+    //ODMAH AŽURIRAMO AUTH STATE
     updateUser({
       firstName: updatedUser.firstName,
       lastName: updatedUser.lastName,
@@ -60,9 +60,6 @@ export default function ProfilePage() {
     setMessage(err.message || "Greška pri čuvanju.");
   }
 }
-
-
-
   async function handleChangePassword() {
   setMessage("");
 
@@ -93,8 +90,6 @@ export default function ProfilePage() {
     setMessage(err.message || "Greška pri promeni šifre.");
   }
 }
-
-
 
   return (
     <main style={{ padding: "60px 24px", maxWidth: 550, margin: "0 auto", minHeight: "80vh" }}>

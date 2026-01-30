@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt"; // Koristimo običan bcrypt kao u login-u
+import bcrypt from "bcrypt"; 
 import { prisma } from "@/lib/prisma";
+import { getAuth, requireRole } from "@/lib/auth";
+
 
 export async function PUT(
   req: Request,
-  context: { params: Promise<{ id: string }> } // Next.js 15+ podrška
+  context: { params: Promise<{ id: string }> } 
 ) {
   try {
+    const auth = await getAuth(req);
+    if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { id } = await context.params;
     const userId = Number(id);
     const { oldPassword, newPassword } = await req.json();

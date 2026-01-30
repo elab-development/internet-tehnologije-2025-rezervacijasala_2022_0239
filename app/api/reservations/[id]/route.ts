@@ -6,7 +6,7 @@ const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
 
 
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
-  const auth = await getAuth(req); // Dodaj ovo
+  const auth = await getAuth(req); 
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   
   const { id } = await context.params;

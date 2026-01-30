@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       isClosed,
     } = body;
 
-    // ✅ obavezna polja
+    // obavezna polja
     if (
       !name ||
       capacity === undefined ||
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    // ✅ validacije
+    // validacije
     const cap = Number(capacity);
     const price = Number(pricePerHour);
     const cId = Number(cityId);
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "categoryId must be a valid number" }, { status: 400 });
     }
 
-    // ✅ provjera da City i Category postoje
+    // provjera da City i Category postoje
     const [city, category] = await Promise.all([
       prisma.city.findUnique({ where: { id: cId } }),
       prisma.hallCategory.findUnique({ where: { id: catId } }),

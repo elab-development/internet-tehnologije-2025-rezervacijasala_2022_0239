@@ -4,13 +4,6 @@ import { prisma } from "@/lib/prisma";
 
 export type Role = "USER" | "MANAGER" | "ADMIN";
 
-/**
- * Minimalna serverska autentifikacija (bez JWT/session):
- * - klijent šalje samo x-user-id
- * - server iz baze dohvaća korisnika i njegovu rolu
- *
- * Ovo uklanja kritičnu rupu gdje klijent može lažirati x-user-role.
- */
 export async function getAuth(req: Request) {
   const idHeader = req.headers.get("x-user-id");
   const userId = idHeader ? Number(idHeader) : NaN;
@@ -52,3 +45,8 @@ export async function requireRole(roles: Role[], req: Request) {
 
   return null;
 }
+
+/*Backend helper. API ruta poziva auth.ts da bi utvrdila ko je user i koja mu je uloga. Sa getAuth saznajmo usera, a sa 
+requireRole da li njegov role ima dopustenje da odradi taj neki zahtev. Ovo je sad prava backend zastita (za razliku od AuthContexta
+koji je sluzio samo da bi frontend upravljao sa informacijom ko je ulogovan). Ovo je kao neki middelware
+*/

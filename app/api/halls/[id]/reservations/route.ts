@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-/**
- * GET /api/halls/:id/reservations
- * Vraća ACTIVE rezervacije za konkretnu salu
- */
+
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 🔑 KLJUČNA ISPRAVKA
+
     const { id } = await context.params;
     const hallId = Number(id);
 

@@ -1,4 +1,3 @@
-// lib/api.ts
 
 export async function apiFetch(
   url: string,
@@ -20,7 +19,7 @@ export async function apiFetch(
       const user = JSON.parse(storedUser);
       // Ako korisnik postoji, dodajemo ona dva ključna headera koja backend traži
       headers["x-user-id"] = String(user.id);
-      //headers["x-user-role"] = user.role;
+      //headers["x-user-role"] = user.id;
     } catch (e) {
       console.error("Greška pri čitanju korisnika iz localStorage", e);
     }
@@ -36,7 +35,6 @@ export async function apiFetch(
   try {
     data = await response.json();
   } catch {
-    // Neki odgovori nemaju JSON body, to je ok
   }
 
   if (!response.ok) {
@@ -50,3 +48,9 @@ export async function apiFetch(
 
   return data;
 }
+
+
+/*api je most izmedju UI svijeta i backenda odnosno izmedju Reacta i API rute.
+ovo je pomocnik obicnom fetch-u. automatski dodaje auth podatke, definise error handling, sprijecava ponavljanje koda.
+Frontend poziva afiFetch koji onda pravi HTTP request (fetch) koji poziva neku api rutu-url
+*/

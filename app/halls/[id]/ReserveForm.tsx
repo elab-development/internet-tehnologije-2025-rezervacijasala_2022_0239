@@ -99,7 +99,7 @@ export default function ReserveForm({
         }),
       });
 
-      setMessage("Rezervacija uspešno kreirana ✅");
+      setMessage("Rezervacija uspešno kreirana");
       setDateISO("");
       setStartHHMM("08:00");
       setEndHHMM("10:00");

@@ -7,7 +7,6 @@ import Button from "../../../components/Button";
 import Input from "../../../components/Input";
 import ConfirmModal from "../../../components/Confirm";
 
-// --- TIPOLOGIJA ---
 type City = { id: number; name: string };
 type Category = { id: number; name: string };
 
@@ -132,7 +131,8 @@ export default function ManagerHallsPage() {
   const [hasStage, setHasStage] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
 
-  const [message, setMessage] = useState<string | null>(null);
+  const [addMessage, setAddMessage] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmHallId, setConfirmHallId] = useState<number | null>(null);
   const [editingHall, setEditingHall] = useState<Hall | null>(null);
@@ -160,21 +160,21 @@ export default function ManagerHallsPage() {
       })
       .catch((e: any) => {
         console.error(e);
-        setMessage("Greška pri učitavanju podataka");
+        setActionMessage("Greška pri učitavanju podataka");
       })
       .finally(() => setLoading(false));
   }, [isPrivileged, user]);
 
   // --- CRUD FUNKCIJE ---
   async function addHall() {
-    setMessage(null);
+    setAddMessage(null);
     const c = Number(capacity);
     const p = Number(pricePerHour);
     const cId = Number(cityId);
     const catId = Number(categoryId);
 
     if (!name.trim() || !c || !p || !cId || !catId) {
-      return setMessage("Sva polja (Naziv, Kapacitet, Cijena, Grad, Kategorija) su obavezna.");
+      return setAddMessage("Sva polja (Naziv, Kapacitet, Cijena, Grad, Kategorija) su obavezna.");
     }
 
     try {
@@ -198,9 +198,9 @@ export default function ManagerHallsPage() {
       // Reset forme
       setName(""); setDescription(""); setCapacity(""); setPricePerHour("");
       setHasStage(false); setIsClosed(false);
-      setMessage("Sala uspješno dodata ✅");
+      setAddMessage("Sala uspješno dodata!");
     } catch (err: any) {
-      setMessage(err.message || "Greška pri dodavanju");
+      setAddMessage(err.message || "Greška pri dodavanju");
     }
   }
 
@@ -214,9 +214,9 @@ export default function ManagerHallsPage() {
       const updatedHall = response.hall || response;
       setHalls(prev => prev.map(h => h.id === editingHall.id ? updatedHall : h));
       setEditingHall(null);
-      setMessage("Izmjene sačuvane ✅");
+      setActionMessage("Izmjene sačuvane!");
     } catch (err: any) {
-      setMessage(err.message || "Greška pri izmjeni");
+      setActionMessage(err.message || "Greška pri izmjeni");
     }
   }
 
@@ -229,7 +229,7 @@ export default function ManagerHallsPage() {
       const updated = response.hall || response;
       setHalls((prev) => prev.map((h) => (h.id === hall.id ? updated : h)));
     } catch (err) {
-      setMessage("Greška pri promjeni statusa");
+      setActionMessage("Greška pri promjeni statusa");
     }
   }
 
@@ -238,9 +238,9 @@ export default function ManagerHallsPage() {
       await apiFetch(`/api/halls/${id}`, { method: "DELETE" });
       setHalls((prev) => prev.filter((h) => h.id !== id));
       setConfirmHallId(null);
-      setMessage("Sala obrisana.");
+      setActionMessage("Sala obrisana.");
     } catch (err: any) {
-      setMessage(err.message || "Greška pri brisanju");
+      setActionMessage(err.message || "Greška pri brisanju");
       setConfirmHallId(null);
     }
   }
@@ -281,12 +281,24 @@ export default function ManagerHallsPage() {
         <label style={{ display: "flex", gap: 10 }}><input type="checkbox" checked={isClosed} onChange={e => setIsClosed(e.target.checked)} /> Zatvorena (unutra)</label>
 
         <Button onClick={addHall}>Dodaj salu</Button>
-        {message && <p style={{ color: "purple", fontWeight: "600" }}>{message}</p>}
+        {addMessage && (
+          <p style={{ color: "purple", fontWeight: "600" }}>{addMessage}</p>
+        )}
       </section>
 
       {/* LISTA SALA */}
       <section style={{ marginTop: 32 }}>
         <h2>Postojeće sale</h2>
+         {actionMessage && (
+          <p style={{ 
+            marginTop: 8, 
+            marginBottom: 16,
+            color: "purple", 
+            fontWeight: 600 
+          }}>
+            {actionMessage}
+          </p>
+        )}
         <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
           {halls.map((h) => (
             <div key={h.id} style={{ 
@@ -299,7 +311,7 @@ export default function ManagerHallsPage() {
                   {h.city?.name} • {h.category?.name} • Kapacitet: {h.capacity} • {h.pricePerHour} €/h
                 </div>
                 <div style={{ fontSize: 13, marginTop: 4, color: "#888" }}>
-                  {h.isClosed ? "Zatvoren prostor" : "Na otvorenom"} • {h.hasStage ? "🎤 Sa binom" : "Nema binu"}
+                  {h.isClosed ? "Zatvoren prostor" : "Na otvorenom"} • {h.hasStage ? "Sa binom" : "Nema binu"}
                 </div>
               </div>
 
@@ -320,10 +332,13 @@ export default function ManagerHallsPage() {
       </section>
 
       {/* MODALI */}
+      
       <ConfirmModal
         open={confirmHallId !== null}
         title="Brisanje sale"
-        message="Ova akcija je nepovratna. Da li ste sigurni?"
+        message="Da li si siguran da želiš da obrišeš salu?"
+        confirmText="Obriši"
+        confirmVariant="danger"
         onCancel={() => setConfirmHallId(null)}
         onConfirm={() => removeHall(confirmHallId!)}
       />

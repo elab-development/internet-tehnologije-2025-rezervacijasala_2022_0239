@@ -1,4 +1,3 @@
-// lib/time.ts
 
 export function todayISODate() {
   // YYYY-MM-DD

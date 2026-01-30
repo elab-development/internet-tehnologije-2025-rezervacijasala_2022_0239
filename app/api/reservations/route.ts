@@ -4,7 +4,7 @@ import { requireRole, getAuth } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
-    // ✅ svi ulogovani korisnici
+    //svi ulogovani korisnici
     const roleCheck = await requireRole(["USER", "MANAGER", "ADMIN"], req);
     if (roleCheck) return roleCheck;
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { hallId, startDateTime, endDateTime, numberOfGuests } = body;
 
-    // ✅ obavezna polja
+    // obavezna polja
     if (!hallId || !startDateTime || !endDateTime || !numberOfGuests) {
       return NextResponse.json(
         { error: "Missing fields" },
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ provera da sala postoji
+    // provera da sala postoji
     const hall = await prisma.hall.findUnique({
       where: { id: Number(hallId) },
     });
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ provera kapaciteta
+    // provera kapaciteta
     if (numberOfGuests > hall.capacity) {
       return NextResponse.json(
         {
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🚨 KLJUČNA PROVERA PREKLAPANJA TERMINA
+    // KLJUČNA PROVERA PREKLAPANJA TERMINA
     const conflict = await prisma.reservation.findFirst({
       where: {
         hallId: Number(hallId),
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ kreiranje rezervacije
+    // kreiranje rezervacije
     const reservation = await prisma.reservation.create({
       data: {
         userId,
