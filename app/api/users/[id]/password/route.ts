@@ -1,32 +1,38 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt"; 
+import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
-import { getAuth, requireRole } from "@/lib/auth";
-
+import { getAuth } from "@/lib/auth";
 
 export async function PUT(
   req: Request,
-  context: { params: Promise<{ id: string }> } 
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getAuth(req);
-    if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const userId = Number(id);
-    const { oldPassword, newPassword } = await req.json();
 
-    if (!oldPassword || !newPassword) {
+    if (Number.isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user id" }, { status: 400 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const newPassword = (body?.newPassword ?? "").trim();
+    const oldPassword = (body?.oldPassword ?? "").trim();
+
+    if (!newPassword) {
       return NextResponse.json(
-        { error: "Oba polja su obavezna" },
+        { error: "Nova šifra je obavezna" },
         { status: 400 }
       );
     }
 
-    // 1. Nađi korisnika u bazi
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
+    // 1) Nađi korisnika kome menjaš šifru
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json(
         { error: "Korisnik nije pronađen" },
@@ -34,36 +40,45 @@ export async function PUT(
       );
     }
 
-    // 2. Uporedi staru šifru (kao u tvom login-u)
-    const passwordMatch = await bcrypt.compare(
-      oldPassword,
-      user.passwordHash
-    );
+    const isAdmin = auth.role === "ADMIN";
 
-    if (!passwordMatch) {
-      return NextResponse.json(
-        { error: "Trenutna šifra nije ispravna" },
-        { status: 401 }
-      );
+    // 2) Ako nije admin:
+    // - može menjati samo sebi
+    // - mora dati staru šifru
+    if (!isAdmin) {
+      if (auth.userId !== userId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      if (!oldPassword) {
+        return NextResponse.json(
+          { error: "Trenutna šifra je obavezna" },
+          { status: 400 }
+        );
+      }
+
+      const passwordMatch = await bcrypt.compare(oldPassword, user.passwordHash);
+      if (!passwordMatch) {
+        return NextResponse.json(
+          { error: "Trenutna šifra nije ispravna" },
+          { status: 401 }
+        );
+      }
     }
 
-    // 3. Heširaj novu šifru
-    // Koristimo isti broj krugova (salt) kao što je standard
+    // 3) (Admin ili običan user nakon provjere) — upiši novu
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-    // 4. Sačuvaj promjenu
     await prisma.user.update({
       where: { id: userId },
       data: { passwordHash: hashedNewPassword },
     });
 
-    return NextResponse.json({ message: "Šifra uspješno promijenjena" });
-
+    return NextResponse.json({
+      message: isAdmin ? "Šifra je resetovana" : "Šifra uspješno promijenjena",
+    });
   } catch (error) {
     console.error("Greška na serveru:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

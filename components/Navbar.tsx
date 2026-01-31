@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
+
 
   // dropdown se skloni kad se klikne negdje na stranici
     useEffect(() => {
@@ -140,6 +144,7 @@ export default function Navbar() {
                     onClick={() => {
                       setOpen(false);
                       logout();
+                      router.push("/"); // preusmjeri na početnu
                     }}
                     style={{
                       width: "100%",

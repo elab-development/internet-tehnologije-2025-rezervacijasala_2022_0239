@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import { diffHours } from "@/lib/time";
 import { Reservation } from "./page";
 import { canModifyOrCancel, fmtDateTimeSR, statusLabel } from "./reservationUtils";
+import ConfirmModal from "@/components/Confirm"; // <-- prilagodi putanju ako ti je drugačija
 
 export default function ReservationCard({
   reservation,
@@ -19,6 +20,9 @@ export default function ReservationCard({
   onChanged: () => void;
 }) {
   const { user } = useAuth();
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const canAction =
     reservation.status === "ACTIVE" &&
@@ -35,25 +39,19 @@ export default function ReservationCard({
     return durationHours * pricePerHour;
   }, [durationHours, reservation.hall?.pricePerHour]);
 
-  async function cancel() {
+  async function doCancel() {
     if (!user) return;
 
-    if (!canAction) {
-      alert("Izmjena/otkazivanje je moguće samo do 15 dana prije termina.");
-      return;
-    }
-
-    const ok = confirm("Da li sigurno želiš da otkažeš rezervaciju?");
-    if (!ok) return;
-
     try {
-      await apiFetch(
-        `/api/reservations/${reservation.id}`,
-        { method: "DELETE" },
-      );
+      setBusy(true);
+      await apiFetch(`/api/reservations/${reservation.id}`, { method: "DELETE" });
+      setConfirmOpen(false);
       onChanged();
     } catch (e: any) {
       alert(e?.message || "Greška pri otkazivanju");
+      setConfirmOpen(false);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -87,9 +85,7 @@ export default function ReservationCard({
           </div>
 
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>
-              Broj gostiju:
-            </strong>{" "}
+            <strong style={{ color: "var(--text-main)" }}>Broj gostiju:</strong>{" "}
             {reservation.numberOfGuests}
           </div>
 
@@ -105,7 +101,14 @@ export default function ReservationCard({
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          justifyContent: "flex-end",
+          flexWrap: "wrap",
+        }}
+      >
         <button
           type="button"
           onClick={onEdit}
@@ -120,11 +123,14 @@ export default function ReservationCard({
 
         <button
           type="button"
-          onClick={cancel}
-          disabled={!canAction}
+          onClick={() => {
+            if (!canAction) return;
+            setConfirmOpen(true); // ✅ umjesto confirm()
+          }}
+          disabled={!canAction || busy}
           style={{
-            opacity: canAction ? 1 : 0.5,
-            cursor: canAction ? "pointer" : "not-allowed",
+            opacity: canAction && !busy ? 1 : 0.5,
+            cursor: canAction && !busy ? "pointer" : "not-allowed",
           }}
         >
           Otkaži
@@ -136,6 +142,17 @@ export default function ReservationCard({
           Izmjena/otkazivanje je moguće samo do <strong>15 dana</strong> prije termina.
         </div>
       )}
+
+      {/* ✅ Lijepi confirm modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="Otkaži rezervaciju"
+        message="Da li sigurno želiš da otkažeš rezervaciju?"
+        confirmText={busy ? "Brisanje..." : "Otkaži"}
+        confirmVariant="danger"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={doCancel}
+      />
     </div>
   );
 }

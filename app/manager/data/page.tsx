@@ -26,15 +26,14 @@ export default function DataEntryPage() {
     e.preventDefault();
     setCityMsg("");
     try {
-      // ✅ Ovo je dobro jer je folder app/api/cities
       await apiFetch("/api/cities", {
         method: "POST",
         body: JSON.stringify({ name: cityName }),
       });
-      setCityMsg("✅ Grad uspešno dodat!");
+      setCityMsg("Grad uspešno dodat!");
       setCityName(""); 
     } catch (err: any) {
-      setCityMsg("❌ Greška: " + (err.message || "Neuspešno."));
+      setCityMsg("Greška: " + (err.message || "Neuspešno."));
     }
   }
 
@@ -43,7 +42,7 @@ export default function DataEntryPage() {
     e.preventDefault();
     setCatMsg("");
     try {
-      // ⚠️ IZMENA: Ruta mora da se slaže sa nazivom foldera na backendu
+      // IZMENA: Ruta mora da se slaže sa nazivom foldera na backendu
       // Bilo je "/api/categories", sada je "/api/hall-categories"
       await apiFetch("/api/hall-categories", {
         method: "POST",
@@ -52,7 +51,7 @@ export default function DataEntryPage() {
       setCatMsg("✅ Kategorija uspešno dodata!");
       setCatName(""); 
     } catch (err: any) {
-      setCatMsg("❌ Greška: " + (err.message || "Neuspešno."));
+      setCatMsg("Greška: " + (err.message || "Neuspešno."));
     }
   }
 

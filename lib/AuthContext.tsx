@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (stored) {
       setUser(JSON.parse(stored));
     }
-  }, []); //na startu aplikacije ucita usera iz localne memorije browsera i to se desi tad samo jednom ([]) i poslije ne, a onda
+  }, []); 
+  //na startu aplikacije ucita usera iz localne memorije browsera i to se desi tad samo jednom ([]) i poslije ne, a onda
   //tog usera kojeg je ucitao smjesta u state user. ovo nam znaci takdoje da kad god bi refreshovali stranicu da nam user ostane 
   //ucitan
 

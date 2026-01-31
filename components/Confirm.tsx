@@ -27,7 +27,7 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
   confirmText = "Potvrdi",
-  cancelText = "Otkaži",
+  cancelText = "Nazad",
   confirmVariant = "primary",
   disabled = false,
   closeOnBackdrop = true,

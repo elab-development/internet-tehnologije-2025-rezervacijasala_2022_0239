@@ -2,27 +2,20 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, getAuth } from "@/lib/auth";
 
-/**
- * PUT /api/users/[id]
- * USER može menjati samo sebe
- * ADMIN može menjati svakoga
- */
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params; 
+    const { id } = await context.params;
     const userId = Number(id);
 
     if (Number.isNaN(userId)) {
-      return NextResponse.json(
-        { error: "Invalid user id" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid user id" }, { status: 400 });
     }
 
-    const { firstName, lastName } = await req.json();
+    // sad prima i role (opciono)
+    const { firstName, lastName, role } = await req.json();
 
     if (!firstName || !lastName) {
       return NextResponse.json(
@@ -31,31 +24,50 @@ export async function PUT(
       );
     }
 
-    // autorizacija: USER/MANAGER mogu menjati samo sebe; ADMIN može bilo koga
     const auth = await getAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // ako nije ADMIN, onda može menjati samo sebe
     if (auth.role !== "ADMIN" && auth.userId !== userId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // pripremi data objekat za update
+    const data: any = { firstName, lastName };
+
+    // samo ADMIN sme da menja ulogu
+    if (role) {
+      if (auth.role !== "ADMIN") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      // nađi Role po imenu u bazi (Role tabela)
+      const roleRow = await prisma.role.findUnique({
+        where: { name: role }, // role je "USER" | "MANAGER" | "ADMIN"
+      });
+
+      if (!roleRow) {
+        return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+      }
+
+      data.roleId = roleRow.id;
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { firstName, lastName },
+      data,
       include: { role: true },
     });
 
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("Greška pri ažuriranju korisnika:", error);
-    return NextResponse.json(
-      { error: "Greška na serveru" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Greška na serveru" }, { status: 500 });
   }
 }
+
 
 export async function DELETE(
   req: Request,

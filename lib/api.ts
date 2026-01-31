@@ -17,9 +17,7 @@ export async function apiFetch(
   if (storedUser) {
     try {
       const user = JSON.parse(storedUser);
-      // Ako korisnik postoji, dodajemo ona dva ključna headera koja backend traži
       headers["x-user-id"] = String(user.id);
-      //headers["x-user-role"] = user.id;
     } catch (e) {
       console.error("Greška pri čitanju korisnika iz localStorage", e);
     }
