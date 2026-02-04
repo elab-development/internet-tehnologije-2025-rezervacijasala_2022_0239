@@ -18,6 +18,7 @@ model User {
   firstName    String
   lastName     String
   email        String   @unique
+  phone        String?
   passwordHash String
   roleId       Int
   role         Role     @relation(fields: [roleId], references: [id])
@@ -73,6 +74,7 @@ model Reservation {
   numberOfGuests Int
   status         ReservationStatus @default(ACTIVE)
   createdAt      DateTime @default(now())
+  @@unique([hallId, startDateTime, endDateTime])
 }
 
 enum ReservationStatus {

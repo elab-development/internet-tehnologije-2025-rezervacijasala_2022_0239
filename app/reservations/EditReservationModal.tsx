@@ -3,9 +3,15 @@
 import { useMemo, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
-import { buildHourOptions, diffHours, toISOStringFromDateAndTime, todayISODate } from "@/lib/time";
+import {
+  buildHourOptions,
+  diffHours,
+  toISOStringFromDateAndTime,
+  todayISODate,
+} from "@/lib/time";
 import { Reservation } from "./page";
 import { canModifyOrCancel } from "./reservationUtils";
+import Button from "@/components/Button";
 
 export default function EditReservationModal({
   reservation,
@@ -22,13 +28,17 @@ export default function EditReservationModal({
   const start = new Date(reservation.startDateTime);
   const end = new Date(reservation.endDateTime);
 
-  const initDate = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(
-    start.getDate()
-  ).padStart(2, "0")}`;
+  const initDate = `${start.getFullYear()}-${String(
+    start.getMonth() + 1
+  ).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
 
   const [dateISO, setDateISO] = useState(initDate);
-  const [startTime, setStartTime] = useState(`${String(start.getHours()).padStart(2, "0")}:00`);
-  const [endTime, setEndTime] = useState(`${String(end.getHours()).padStart(2, "0")}:00`);
+  const [startTime, setStartTime] = useState(
+    `${String(start.getHours()).padStart(2, "0")}:00`
+  );
+  const [endTime, setEndTime] = useState(
+    `${String(end.getHours()).padStart(2, "0")}:00`
+  );
   const [guests, setGuests] = useState(reservation.numberOfGuests);
 
   const [saving, setSaving] = useState(false);
@@ -44,9 +54,9 @@ export default function EditReservationModal({
     if (eh < sh) {
       const d = new Date(dateISO + "T00:00:00");
       d.setDate(d.getDate() + 1);
-      endDateISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-        d.getDate()
-      ).padStart(2, "0")}`;
+      endDateISO = `${d.getFullYear()}-${String(
+        d.getMonth() + 1
+      ).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     }
 
     const endISO = toISOStringFromDateAndTime(endDateISO, endTime);
@@ -65,7 +75,9 @@ export default function EditReservationModal({
 
   const durationLabel = useMemo(() => {
     if (durationHours <= 0) return "—";
-    return `${durationHours.toFixed(durationHours % 1 === 0 ? 0 : 1)} h`;
+    return `${durationHours.toFixed(
+      durationHours % 1 === 0 ? 0 : 1
+    )} h`;
   }, [durationHours]);
 
   const totalPrice = useMemo(() => {
@@ -104,17 +116,14 @@ export default function EditReservationModal({
     try {
       setSaving(true);
 
-      await apiFetch(
-        `/api/reservations/${reservation.id}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            startDateTime: startISO,
-            endDateTime: endISO,
-            numberOfGuests: guests,
-          }),
-        },
-      );
+      await apiFetch(`/api/reservations/${reservation.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          startDateTime: startISO,
+          endDateTime: endISO,
+          numberOfGuests: guests,
+        }),
+      });
 
       onSaved();
     } catch (e: any) {
@@ -137,24 +146,51 @@ export default function EditReservationModal({
         zIndex: 50,
       }}
     >
-      <div className="card" onClick={(e) => e.stopPropagation()} style={{ width: "min(720px, 100%)", display: "grid", gap: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-          <h2 style={{ margin: 0 }}>Izmijeni rezervaciju</h2>
-          <button type="button" onClick={onClose} style={{ padding: "10px 14px" }}>
-            Zatvori
-          </button>
+      <div
+        className="card"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(720px, 100%)",
+          display: "grid",
+          gap: 14,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            alignItems: "center",
+          }}
+        >
+          <h2 style={{ margin: 0 }}>Izmeni rezervaciju</h2>
+          <Button onClick={onClose}>Zatvori</Button>
         </div>
 
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ display: "grid", gap: 6 }}>
             <label style={{ fontWeight: 700 }}>Datum</label>
-            <input type="date" min={todayISODate()} value={dateISO} onChange={(e) => setDateISO(e.target.value)} />
+            <input
+              type="date"
+              min={todayISODate()}
+              value={dateISO}
+              onChange={(e) => setDateISO(e.target.value)}
+            />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 12,
+            }}
+          >
             <div style={{ display: "grid", gap: 6 }}>
               <label style={{ fontWeight: 700 }}>Početak</label>
-              <select value={startTime} onChange={(e) => setStartTime(e.target.value)}>
+              <select
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              >
                 {hours.map((t) => (
                   <option key={t} value={t}>
                     {t}
@@ -165,7 +201,10 @@ export default function EditReservationModal({
 
             <div style={{ display: "grid", gap: 6 }}>
               <label style={{ fontWeight: 700 }}>Kraj</label>
-              <select value={endTime} onChange={(e) => setEndTime(e.target.value)}>
+              <select
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              >
                 {hours.map((t) => (
                   <option key={t} value={t}>
                     {t}
@@ -177,31 +216,54 @@ export default function EditReservationModal({
 
           <div style={{ display: "grid", gap: 6 }}>
             <label style={{ fontWeight: 700 }}>Broj gostiju</label>
-            <input type="number" min={1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} />
+            <input
+              type="number"
+              min={1}
+              value={guests}
+              onChange={(e) => setGuests(Number(e.target.value))}
+            />
           </div>
 
-          <div style={{ display: "flex", gap: 18, flexWrap: "wrap", fontSize: 14, color: "var(--text-muted)" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 18,
+              flexWrap: "wrap",
+              fontSize: 14,
+              color: "var(--text-muted)",
+            }}
+          >
             <div>
-              Trajanje: <strong style={{ color: "var(--text-main)" }}>{durationLabel}</strong>
+              Trajanje:{" "}
+              <strong style={{ color: "var(--text-main)" }}>
+                {durationLabel}
+              </strong>
             </div>
             <div>
-              Ukupno: <strong style={{ color: "var(--text-main)" }}>{totalPrice.toFixed(2)} €</strong>
+              Ukupno:{" "}
+              <strong style={{ color: "var(--text-main)" }}>
+                {totalPrice.toFixed(2)} €
+              </strong>
             </div>
           </div>
 
-          {err && <p style={{ margin: 0, color: "crimson", fontWeight: 700 }}>{err}</p>}
+          {err && (
+            <p style={{ margin: 0, color: "crimson", fontWeight: 700 }}>
+              {err}
+            </p>
+          )}
 
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{ background: "transparent", color: "var(--accent-primary)", border: "1px solid var(--border-color)" }}
-            >
-              Odustani
-            </button>
-            <button type="button" onClick={save} disabled={saving}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              justifyContent: "flex-end",
+            }}
+          >
+            <Button onClick={onClose}>Odustani</Button>
+            <Button onClick={save} disabled={saving}>
               {saving ? "Čuvam..." : "Sačuvaj"}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

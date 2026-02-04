@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { apiFetch } from "@/lib/api";
+import Button from "@/components/Button";
 import {
   todayISODate,
   buildHourOptions,
@@ -164,9 +165,7 @@ export default function ReserveForm({
       </div>
 
       <div style={{ display: "grid", gap: 6 }}>
-        <label style={{ fontWeight: 700 }}>
-          Broj gostiju
-        </label>
+        <label style={{ fontWeight: 700 }}>Broj gostiju</label>
         <input
           type="number"
           min={1}
@@ -187,16 +186,22 @@ export default function ReserveForm({
         }}
       >
         <div style={{ fontWeight: 800 }}>Sažetak</div>
-        <div>Trajanje: <b>{dateISO ? durationHours : 0} h</b></div>
-        <div>Ukupno: <b>{dateISO ? totalPrice.toFixed(2) : "0.00"} €</b></div>
+        <div>
+          Trajanje: <b>{dateISO ? durationHours : 0} h</b>
+        </div>
+        <div>
+          Ukupno: <b>{dateISO ? totalPrice.toFixed(2) : "0.00"} €</b>
+        </div>
       </div>
 
-      <button type="submit" disabled={loading}>
+      <Button type="submit" disabled={loading}>
         {loading ? "Rezervišem..." : "Rezerviši"}
-      </button>
+      </Button>
 
       {message && <p>{message}</p>}
-      {error && <p style={{ color: "crimson", fontWeight: 700 }}>{error}</p>}
+      {error && (
+        <p style={{ color: "crimson", fontWeight: 700 }}>{error}</p>
+      )}
     </form>
   );
 }

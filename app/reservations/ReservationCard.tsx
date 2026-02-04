@@ -5,8 +5,13 @@ import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import { diffHours } from "@/lib/time";
 import { Reservation } from "./page";
-import { canModifyOrCancel, fmtDateTimeSR, statusLabel } from "./reservationUtils";
-import ConfirmModal from "@/components/Confirm"; // <-- prilagodi putanju ako ti je drugačija
+import {
+  canModifyOrCancel,
+  fmtDateTimeSR,
+  statusLabel,
+} from "./reservationUtils";
+import ConfirmModal from "@/components/Confirm";
+import Button from "@/components/Button";
 
 export default function ReservationCard({
   reservation,
@@ -29,7 +34,10 @@ export default function ReservationCard({
     canModifyOrCancel(reservation.startDateTime);
 
   const durationHours = useMemo(() => {
-    const h = diffHours(reservation.startDateTime, reservation.endDateTime);
+    const h = diffHours(
+      reservation.startDateTime,
+      reservation.endDateTime
+    );
     return h > 0 ? h : 0;
   }, [reservation.startDateTime, reservation.endDateTime]);
 
@@ -44,7 +52,9 @@ export default function ReservationCard({
 
     try {
       setBusy(true);
-      await apiFetch(`/api/reservations/${reservation.id}`, { method: "DELETE" });
+      await apiFetch(`/api/reservations/${reservation.id}`, {
+        method: "DELETE",
+      });
       setConfirmOpen(false);
       onChanged();
     } catch (e: any) {
@@ -85,7 +95,9 @@ export default function ReservationCard({
           </div>
 
           <div style={{ color: "var(--text-muted)" }}>
-            <strong style={{ color: "var(--text-main)" }}>Broj gostiju:</strong>{" "}
+            <strong style={{ color: "var(--text-main)" }}>
+              Broj gostiju:
+            </strong>{" "}
             {reservation.numberOfGuests}
           </div>
 
@@ -101,6 +113,7 @@ export default function ReservationCard({
         </div>
       </div>
 
+      {/* AKCIJE */}
       <div
         style={{
           display: "flex",
@@ -109,41 +122,30 @@ export default function ReservationCard({
           flexWrap: "wrap",
         }}
       >
-        <button
-          type="button"
-          onClick={onEdit}
-          disabled={!canAction}
-          style={{
-            opacity: canAction ? 1 : 0.5,
-            cursor: canAction ? "pointer" : "not-allowed",
-          }}
-        >
-          Izmijeni
-        </button>
+        <Button onClick={onEdit} disabled={!canAction}>
+          Izmeni
+        </Button>
 
-        <button
-          type="button"
+        <Button
           onClick={() => {
             if (!canAction) return;
-            setConfirmOpen(true); // ✅ umjesto confirm()
+            setConfirmOpen(true);
           }}
           disabled={!canAction || busy}
-          style={{
-            opacity: canAction && !busy ? 1 : 0.5,
-            cursor: canAction && !busy ? "pointer" : "not-allowed",
-          }}
         >
           Otkaži
-        </button>
+        </Button>
       </div>
 
-      {reservation.status === "ACTIVE" && !canModifyOrCancel(reservation.startDateTime) && (
-        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-          Izmjena/otkazivanje je moguće samo do <strong>15 dana</strong> prije termina.
-        </div>
-      )}
+      {reservation.status === "ACTIVE" &&
+        !canModifyOrCancel(reservation.startDateTime) && (
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            Izmena/otkazivanje je moguće samo do{" "}
+            <strong>15 dana</strong> pre termina.
+          </div>
+        )}
 
-      {/* ✅ Lijepi confirm modal */}
+      {/* CONFIRM MODAL */}
       <ConfirmModal
         open={confirmOpen}
         title="Otkaži rezervaciju"

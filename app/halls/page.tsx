@@ -5,6 +5,7 @@ import HallCard from "@/components/HallCard";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 type City = { id: number; name: string };
 type Category = { id: number; name: string };
@@ -31,7 +32,7 @@ export default function HallsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔎 FILTER STATE
+  // FILTER STATE
   const [search, setSearch] = useState("");
   const [maxPrice, setMaxPrice] = useState<number | "">("");
   const [hasStageOnly, setHasStageOnly] = useState(false);
@@ -39,13 +40,11 @@ export default function HallsPage() {
   const [selectedCity, setSelectedCity] = useState("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
 
-  // ✅ novi checkbox filteri za otvoreno/zatvoreno
-  const [openOnly, setOpenOnly] = useState(false);     // na otvorenom
-  const [closedOnly, setClosedOnly] = useState(false); // unutra
+  const [openOnly, setOpenOnly] = useState(false);
+  const [closedOnly, setClosedOnly] = useState(false);
 
   const isPrivileged = user?.role === "MANAGER" || user?.role === "ADMIN";
 
-  // FETCH PODATAKA (Sale + Gradovi + Kategorije)
   useEffect(() => {
     setLoading(true);
 
@@ -63,43 +62,30 @@ export default function HallsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // FILTER LOGIKA
   const filteredHalls = useMemo(() => {
     return halls.filter((hall) => {
-      // Naziv
       if (search && !hall.name.toLowerCase().includes(search.toLowerCase()))
         return false;
 
-      // Cena (max)
       if (maxPrice !== "" && hall.pricePerHour > maxPrice) return false;
 
-      // Bina
       if (hasStageOnly && !hall.hasStage) return false;
 
-      // Grad
       if (selectedCity !== "ALL" && hall.city?.name !== selectedCity)
         return false;
 
-      // Kategorija
       if (
         selectedCategory !== "ALL" &&
         hall.category?.name !== selectedCategory
       )
         return false;
 
-      /**
-       * Otvoreno/Zatvoreno (checkbox logika):
-       * - nijedan čekiran -> prikaži sve
-       * - oba čekirana -> prikaži sve
-       * - samo open -> prikaži samo gdje isClosed === false
-       * - samo closed -> prikaži samo gdje isClosed === true
-       */
       const bothChecked = openOnly && closedOnly;
       const noneChecked = !openOnly && !closedOnly;
 
       if (!bothChecked && !noneChecked) {
-        if (openOnly && hall.isClosed) return false;      // tražimo otvoreno, a ovo je zatvoreno
-        if (closedOnly && !hall.isClosed) return false;   // tražimo zatvoreno, a ovo je otvoreno
+        if (openOnly && hall.isClosed) return false;
+        if (closedOnly && !hall.isClosed) return false;
       }
 
       return true;
@@ -122,18 +108,16 @@ export default function HallsPage() {
       <p style={{ padding: 40, color: "red", textAlign: "center" }}>{error}</p>
     );
 
-  // Stilovi za inpute da izgledaju isto
   const inputStyle: React.CSSProperties = {
     padding: "10px 12px",
     borderRadius: "8px",
     border: "1px solid #e2e8f0",
     fontSize: "14px",
-    outline: "none",
   };
 
   return (
     <main style={{ padding: "40px 24px", maxWidth: 1100, margin: "0 auto" }}>
-      {/* --- ZAGLAVLJE I DUGMAD --- */}
+      {/* === ZAGLAVLJE === */}
       <div
         style={{
           display: "flex",
@@ -147,63 +131,33 @@ export default function HallsPage() {
         <h1 style={{ margin: 0, fontSize: "2rem", color: "#1a202c" }}>Sale</h1>
 
         {isPrivileged && (
-          <div style={{ display: "flex", gap: "12px" }}>
-            <Link
-              href="/manager/data"
-              style={{
-                backgroundColor: "white",
-                color: "#6b21a8",
-                border: "1px solid #6b21a8",
-                padding: "10px 20px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "600",
-                fontSize: "14px",
-                display: "flex",
-                alignItems: "center",
-                transition: "0.2s",
-              }}
-            >
-              + Šifarnici (Grad/Kat)
+          <div style={{ display: "flex", gap: 12 }}>
+            <Link href="/manager/data">
+              <Button>+ Šifarnici (Grad / Kat)</Button>
             </Link>
 
-            <Link
-              href="/manager/halls"
-              style={{
-                backgroundColor: "#6b21a8",
-                color: "white",
-                padding: "10px 20px",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontWeight: "600",
-                fontSize: "14px",
-                boxShadow: "0 4px 6px rgba(107, 33, 168, 0.2)",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              Upravljaj salama →
+            <Link href="/manager/halls">
+              <Button>Upravljaj salama →</Button>
             </Link>
           </div>
         )}
       </div>
 
-      {/* --- BAR ZA PRETRAGU I FILTRIRANJE --- */}
+      {/* === FILTERI === */}
       <div
         style={{
           backgroundColor: "white",
-          padding: "24px",
-          borderRadius: "16px",
+          padding: 24,
+          borderRadius: 16,
           boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
-          marginBottom: "32px",
+          marginBottom: 32,
           display: "flex",
           flexWrap: "wrap",
-          gap: "16px",
+          gap: 16,
           alignItems: "center",
           border: "1px solid #f0f0f0",
         }}
       >
-        {/* Search */}
         <div style={{ flex: "2 1 200px" }}>
           <input
             placeholder="Pretraga po nazivu..."
@@ -213,7 +167,6 @@ export default function HallsPage() {
           />
         </div>
 
-        {/* Max Cena */}
         <div style={{ flex: "1 1 140px" }}>
           <input
             type="number"
@@ -226,17 +179,11 @@ export default function HallsPage() {
           />
         </div>
 
-        {/* Grad Dropdown */}
         <div style={{ flex: "1 1 160px" }}>
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
-            style={{
-              ...inputStyle,
-              width: "100%",
-              cursor: "pointer",
-              backgroundColor: "white",
-            }}
+            style={{ ...inputStyle, width: "100%" }}
           >
             <option value="ALL">Svi gradovi</option>
             {cities.map((city) => (
@@ -247,17 +194,11 @@ export default function HallsPage() {
           </select>
         </div>
 
-        {/* Kategorija Dropdown (umjesto open/closed dropdown) */}
         <div style={{ flex: "1 1 160px" }}>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{
-              ...inputStyle,
-              width: "100%",
-              cursor: "pointer",
-              backgroundColor: "white",
-            }}
+            style={{ ...inputStyle, width: "100%" }}
           >
             <option value="ALL">Sve kategorije</option>
             {categories.map((cat) => (
@@ -268,124 +209,46 @@ export default function HallsPage() {
           </select>
         </div>
 
-        {/* Checkbox: bina */}
-        <div
-          style={{
-            flex: "0 0 auto",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            paddingLeft: "8px",
-          }}
-        >
+        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <input
             type="checkbox"
-            id="stageCheck"
             checked={hasStageOnly}
             onChange={(e) => setHasStageOnly(e.target.checked)}
-            style={{
-              width: 18,
-              height: 18,
-              cursor: "pointer",
-              accentColor: "#6b21a8",
-            }}
           />
-          <label
-            htmlFor="stageCheck"
-            style={{
-              cursor: "pointer",
-              fontSize: "14px",
-              color: "#4a5568",
-              fontWeight: "500",
-            }}
-          >
-            Ima binu
-          </label>
-        </div>
+          Ima binu
+        </label>
 
-        {/* Checkbox: otvoreno */}
-        <div
-          style={{
-            flex: "0 0 auto",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
+        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <input
             type="checkbox"
-            id="openCheck"
             checked={openOnly}
             onChange={(e) => setOpenOnly(e.target.checked)}
-            style={{
-              width: 18,
-              height: 18,
-              cursor: "pointer",
-              accentColor: "#6b21a8",
-            }}
           />
-          <label
-            htmlFor="openCheck"
-            style={{
-              cursor: "pointer",
-              fontSize: "14px",
-              color: "#4a5568",
-              fontWeight: "500",
-            }}
-          >
-            Na otvorenom
-          </label>
-        </div>
+          Na otvorenom
+        </label>
 
-        {/* Checkbox: zatvoreno */}
-        <div
-          style={{
-            flex: "0 0 auto",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
+        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <input
             type="checkbox"
-            id="closedCheck"
             checked={closedOnly}
             onChange={(e) => setClosedOnly(e.target.checked)}
-            style={{
-              width: 18,
-              height: 18,
-              cursor: "pointer",
-              accentColor: "#6b21a8",
-            }}
           />
-          <label
-            htmlFor="closedCheck"
-            style={{
-              cursor: "pointer",
-              fontSize: "14px",
-              color: "#4a5568",
-              fontWeight: "500",
-            }}
-          >
-            Unutra (zatvoreno)
-          </label>
-        </div>
+          Unutra
+        </label>
       </div>
 
-      {/* --- REZULTATI --- */}
+      {/* === REZULTATI === */}
       {filteredHalls.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "#718096" }}>
-          <p style={{ fontSize: "1.2rem", marginBottom: 10 }}>Nema rezultata</p>
-          <p style={{ fontSize: "0.9rem" }}>
-            Pokušajte da promenite filtere ili kriterijume pretrage.
-          </p>
+          <p style={{ fontSize: "1.2rem" }}>Nema rezultata</p>
+          <p>Pokušajte da promenite filtere.</p>
         </div>
       ) : (
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "24px",
+            gap: 24,
           }}
         >
           {filteredHalls.map((hall) => (
