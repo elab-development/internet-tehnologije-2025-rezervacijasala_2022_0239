@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, getAuth } from "@/lib/auth";
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
@@ -95,8 +98,28 @@ export async function POST(req: Request) {
         startDateTime: start,
         endDateTime: end,
         numberOfGuests,
-        status: "ACTIVE",
+        status: "PENDING",
       },
+      include: {
+        hall: true, // Da bismo znali ime sale za mejl
+        user: true, // Da bismo znali kome šaljemo
+      }
+    });
+
+    // 2. Mejl korisniku
+    await resend.emails.send({
+      from: 'Rezervacije <onboarding@resend.dev>',
+      to: reservation.user.email,
+      subject: 'Vaš zahtev za rezervaciju je primljen',
+      html: `Zdravo, primili smo vaš zahtev za salu <strong>${reservation.hall.name}</strong>. Obavestićemo vas čim menadžer odobri termin.`
+    });
+
+    // 3. Mejl menadžeru (ovde stavi svoj pravi mejl)
+    await resend.emails.send({
+      from: 'Sistem <onboarding@resend.dev>',
+      to: 'tvoj-menadzer-email@gmail.com',
+      subject: 'Nova rezervacija čeka odobrenje',
+      html: `Stigao je novi zahtev za salu <strong>${reservation.hall.name}</strong>. <a href="http://localhost:3000/reservations">Klikni ovde da odobriš</a>.`
     });
 
     return NextResponse.json(
@@ -123,6 +146,7 @@ export async function GET(req: Request) {
         select: {
           firstName: true,
           lastName: true,
+          email: true,
         },
       },
     },

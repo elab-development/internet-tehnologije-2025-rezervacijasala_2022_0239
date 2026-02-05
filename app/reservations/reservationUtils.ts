@@ -1,4 +1,4 @@
-export type Status = "ACTIVE" | "CANCELLED" | "COMPLETED";
+export type Status = "ACTIVE" | "CANCELLED" | "COMPLETED" | "PENDING";
 
 const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
 
@@ -8,6 +8,8 @@ export function canModifyOrCancel(startISO: string) {
 
 export function statusLabel(status: Status) {
   switch (status) {
+    case "PENDING": 
+      return "Na čekanju";
     case "ACTIVE":
       return "Aktivna";
     case "CANCELLED":

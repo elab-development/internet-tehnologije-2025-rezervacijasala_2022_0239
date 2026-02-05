@@ -38,9 +38,10 @@ export async function POST(req: Request) {
       categoryId,
       hasStage,
       isClosed,
+      imageUrl, // NOVO: Primamo URL sa Cloudinary-ja
     } = body;
 
-    // obavezna polja
+    // Obavezna polja (imageUrl obično nije strogo obavezan, ali možeš dodati ako želiš)
     if (
       !name ||
       capacity === undefined ||
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    // validacije
+    // Validacije brojeva
     const cap = Number(capacity);
     const price = Number(pricePerHour);
     const cId = Number(cityId);
@@ -60,20 +61,17 @@ export async function POST(req: Request) {
     if (!Number.isFinite(cap) || cap <= 0) {
       return NextResponse.json({ error: "capacity must be a positive number" }, { status: 400 });
     }
-
     if (!Number.isFinite(price) || price <= 0) {
       return NextResponse.json({ error: "pricePerHour must be a positive number" }, { status: 400 });
     }
-
     if (!Number.isFinite(cId) || cId <= 0) {
       return NextResponse.json({ error: "cityId must be a valid number" }, { status: 400 });
     }
-
     if (!Number.isFinite(catId) || catId <= 0) {
       return NextResponse.json({ error: "categoryId must be a valid number" }, { status: 400 });
     }
 
-    // provjera da City i Category postoje
+    // Provera da City i Category postoje
     const [city, category] = await Promise.all([
       prisma.city.findUnique({ where: { id: cId } }),
       prisma.hallCategory.findUnique({ where: { id: catId } }),
@@ -82,6 +80,7 @@ export async function POST(req: Request) {
     if (!city) return NextResponse.json({ error: "City not found" }, { status: 404 });
     if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
 
+    // KREIRANJE SALE
     const hall = await prisma.hall.create({
       data: {
         name,
@@ -93,6 +92,7 @@ export async function POST(req: Request) {
         isClosed: typeof isClosed === "boolean" ? isClosed : false,
         cityId: cId,
         categoryId: catId,
+        imageUrl: imageUrl || null, // NOVO: Čuvamo URL u bazi
       },
       include: {
         city: { select: { id: true, name: true } },

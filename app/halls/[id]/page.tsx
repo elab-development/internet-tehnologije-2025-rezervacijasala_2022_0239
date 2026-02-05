@@ -5,6 +5,7 @@ import Link from "next/link";
 import ReserveForm from "./ReserveForm";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
+import { useCurrency } from "@/lib/CurrencyContext";
 
 type Hall = {
   id: number;
@@ -15,6 +16,7 @@ type Hall = {
   isActive: boolean;
   isClosed: boolean;
   hasStage: boolean;
+  imageUrl?: string;
   city: { id: number; name: string };
   category: { id: number; name: string };
 };
@@ -29,6 +31,7 @@ export default function HallDetailsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { convertPrice } = useCurrency();
   const { id } = use(params);
   const { user } = useAuth();
 
@@ -104,8 +107,12 @@ export default function HallDetailsPage({
       <Link href="/halls">← Nazad</Link>
 
       <img
-        src={`/images/halls/${hall.id}.jpg`}
+        src={hall.imageUrl || `/images/halls/${hall.id}.jpg`}
         alt={hall.name}
+        onError={(e) => {
+          // Ako ni jedna slika ne radi, postavi placeholder
+          (e.target as HTMLImageElement).src = "/images/placeholder-hall.jpg";
+        }}
         style={{
           width: "100%",
           height: 300,
@@ -127,7 +134,7 @@ export default function HallDetailsPage({
       <p>Grad: {hall.city?.name}</p>
       <p>Kategorija: {hall.category?.name}</p>
       <p>Kapacitet: {hall.capacity}</p>
-      <p>Cena po satu: {hall.pricePerHour} €</p>
+      <p>Cena po satu: <strong>{convertPrice(hall.pricePerHour)}</strong></p>
 
       <p>
         Ima binu: <strong>{hall.hasStage ? "Da" : "Ne"}</strong>
@@ -139,8 +146,6 @@ export default function HallDetailsPage({
           {hall.isClosed ? "U zatvorenom prostoru" : "Na otvorenom"}
         </strong>
       </p>
-
-      <hr style={{ margin: "24px 0" }} />
 
       <hr style={{ margin: "24px 0" }} />
 

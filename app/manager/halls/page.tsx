@@ -6,6 +6,8 @@ import { apiFetch } from "@/lib/api";
 import Button from "../../../components/Button";
 import Input from "../../../components/Input";
 import ConfirmModal from "../../../components/Confirm";
+import { useCurrency } from "@/lib/CurrencyContext";
+import ImageUpload from "@/components/ImageUpload";
 
 type City = { id: number; name: string };
 type Category = { id: number; name: string };
@@ -19,6 +21,7 @@ type Hall = {
   isActive: boolean;
   isClosed: boolean;
   hasStage: boolean;
+  imageUrl?: string;
   city?: City;
   category?: Category;
 };
@@ -45,6 +48,7 @@ function EditHallModal({
   const [categoryId, setCategoryId] = useState(String(hall.category?.id));
   const [hasStage, setHasStage] = useState(hall.hasStage);
   const [isClosed, setIsClosed] = useState(hall.isClosed);
+  const [imageUrl, setImageUrl] = useState(hall.imageUrl || "");
 
   return (
     <div style={{
@@ -59,6 +63,10 @@ function EditHallModal({
         <h3 style={{ marginTop: 0 }}>Izmijeni salu: {hall.name}</h3>
         
         <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontWeight: 700, fontSize: 14, display: "block", marginBottom: 5 }}>Slika sale</label>
+            <ImageUpload value={imageUrl} onUpload={setImageUrl} />
+          </div>
           <Input label="Naziv" value={name} onChange={setName} />
           <Input label="Opis" value={description} onChange={setDescription} />
           <Input label="Kapacitet" type="number" value={capacity} onChange={setCapacity} />
@@ -100,7 +108,7 @@ function EditHallModal({
         <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
           <Button onClick={() => onSave({ 
             name, description, capacity: Number(capacity), pricePerHour: Number(pricePerHour), 
-            cityId: Number(cityId), categoryId: Number(categoryId), hasStage, isClosed 
+            cityId: Number(cityId), categoryId: Number(categoryId), hasStage, isClosed,imageUrl 
           })}>
             Sačuvaj izmjene
           </Button>
@@ -115,6 +123,7 @@ function EditHallModal({
 
 // --- GLAVNA KOMPONENTA ---
 export default function ManagerHallsPage() {
+  const { currency } = useCurrency();
   const { user } = useAuth();
 
   const [halls, setHalls] = useState<Hall[]>([]);
@@ -130,7 +139,7 @@ export default function ManagerHallsPage() {
   const [categoryId, setCategoryId] = useState<string>("");
   const [hasStage, setHasStage] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
-
+  const [imageUrl, setImageUrl] = useState("");
   const [addMessage, setAddMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -189,6 +198,7 @@ export default function ManagerHallsPage() {
           categoryId: catId,
           hasStage,
           isClosed,
+          imageUrl,
         }),
       });
 
@@ -198,6 +208,7 @@ export default function ManagerHallsPage() {
       // Reset forme
       setName(""); setDescription(""); setCapacity(""); setPricePerHour("");
       setHasStage(false); setIsClosed(false);
+      setImageUrl(""); 
       setAddMessage("Sala uspješno dodata!");
     } catch (err: any) {
       setAddMessage(err.message || "Greška pri dodavanju");
@@ -258,6 +269,10 @@ export default function ManagerHallsPage() {
         padding: 20, display: "grid", gap: 12, maxWidth: 620 
       }}>
         <h2 style={{ margin: 0 }}>Dodaj novu salu</h2>
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontWeight: 700 }}>Slika sale</label>
+          <ImageUpload value={imageUrl} onUpload={setImageUrl} />
+        </div>
         <Input label="Naziv" value={name} onChange={setName} />
         <Input label="Opis" value={description} onChange={setDescription} />
         <Input label="Kapacitet" type="number" value={capacity} onChange={setCapacity} />

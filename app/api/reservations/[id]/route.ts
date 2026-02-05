@@ -41,18 +41,13 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 
   return NextResponse.json(reservation);
 }
-
-
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuth(req);
   if (!auth) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await context.params;
@@ -63,65 +58,66 @@ export async function PUT(
   });
 
   if (!reservation) {
-    return NextResponse.json(
-      { error: "Reservation not found" },
-      { status: 404 }
-    );
-  }
-
-  if (
-    auth.role === "USER" &&
-    reservation.userId !== auth.userId
-  ) {
-    return NextResponse.json(
-      { error: "Forbidden" },
-      { status: 403 }
-    );
-  }
-
-  const diff =
-    new Date(reservation.startDateTime).getTime() -
-    Date.now();
-
-  if (diff < FIFTEEN_DAYS_MS) {
-    return NextResponse.json(
-      { error: "Too late to modify reservation" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
   }
 
   const body = await req.json();
-  const { startDateTime, endDateTime, numberOfGuests } = body;
+  const { startDateTime, endDateTime, numberOfGuests, status } = body;
 
-  const conflict = await prisma.reservation.findFirst({
-    where: {
-      hallId: reservation.hallId,
-      status: "ACTIVE",
-      id: { not: reservationId },
-      startDateTime: { lt: new Date(endDateTime) },
-      endDateTime: { gt: new Date(startDateTime) },
-    },
-  });
+  const isPrivileged = auth.role === "ADMIN" || auth.role === "MANAGER";
 
-  if (conflict) {
-    return NextResponse.json(
-      { error: "Hall already reserved" },
-      { status: 409 }
-    );
+  // 1. PROVERA PRAVA PRISTUPA
+  if (!isPrivileged && reservation.userId !== auth.userId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // 2. PROVERA ROKA OD 15 DANA
+  // Ovo važi samo ako korisnik pokušava da menja termin (vreme), 
+  // ali NE važi za menadžera koji menja status (odobrava/odbija).
+  if (!isPrivileged && (startDateTime || endDateTime)) {
+    const diff = new Date(reservation.startDateTime).getTime() - Date.now();
+    if (diff < FIFTEEN_DAYS_MS) {
+      return NextResponse.json(
+        { error: "Too late to modify reservation" },
+        { status: 403 }
+      );
+    }
+  }
+
+  // 3. PROVERA KONFLIKTA TERMINA (samo ako se menja vreme ili ako se odobrava)
+  if (startDateTime && endDateTime && (status === "ACTIVE" || reservation.status === "ACTIVE")) {
+    const conflict = await prisma.reservation.findFirst({
+      where: {
+        hallId: reservation.hallId,
+        status: "ACTIVE",
+        id: { not: reservationId },
+        startDateTime: { lt: new Date(endDateTime) },
+        endDateTime: { gt: new Date(startDateTime) },
+      },
+    });
+
+    if (conflict) {
+      return NextResponse.json(
+        { error: "Hall already reserved for this period" },
+        { status: 409 }
+      );
+    }
+  }
+
+  // 4. AŽURIRANJE U BAZI
   const updated = await prisma.reservation.update({
     where: { id: reservationId },
     data: {
-      startDateTime: new Date(startDateTime),
-      endDateTime: new Date(endDateTime),
-      numberOfGuests,
+      // Koristimo ternarne operatore ili "undefined" da ne bismo pregazili stare vrednosti ako nisu poslate
+      startDateTime: startDateTime ? new Date(startDateTime) : undefined,
+      endDateTime: endDateTime ? new Date(endDateTime) : undefined,
+      numberOfGuests: numberOfGuests !== undefined ? numberOfGuests : undefined,
+      status: status !== undefined ? status : undefined,
     },
   });
 
   return NextResponse.json(updated);
 }
-
 
 export async function DELETE(
   req: Request,

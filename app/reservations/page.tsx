@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import ReservationCard from "./ReservationCard";
 import EditReservationModal from "./EditReservationModal";
 
-type Status = "ACTIVE" | "CANCELLED" | "COMPLETED";
+type Status = "ACTIVE" | "CANCELLED" | "COMPLETED" | "PENDING";
 
 export type Reservation = {
   id: number;
@@ -16,9 +16,8 @@ export type Reservation = {
   numberOfGuests: number;
   status: Status;
   hall: { name: string; pricePerHour: number };
-  user?: { firstName?: string; lastName?: string };
+  user?: { firstName?: string; lastName?: string; email: string};
 };
-
 
 export default function MyReservationsPage() {
   const { user } = useAuth();
@@ -28,6 +27,18 @@ export default function MyReservationsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<Reservation | null>(null);
+
+  // --- LOGIKA ZA SORTIRANJE ---
+  // Koristimo useMemo da sortiramo podatke čim stignu iz baze
+  const sortedReservations = useMemo(() => {
+    return [...reservations].sort((a, b) => {
+      const dateA = new Date(a.startDateTime).getTime();
+      const dateB = new Date(b.startDateTime).getTime();
+      
+      // Od najbližeg datuma ka najdaljem (Hronološki)
+      return dateA - dateB;
+    });
+  }, [reservations]);
 
   async function load() {
     if (!user) {
@@ -73,17 +84,18 @@ export default function MyReservationsPage() {
     <main style={{ padding: 24, maxWidth: 980, margin: "0 auto" }}>
       <h1>{isPrivileged ? "Rezervacije svih korisnika" : "Moje rezervacije"}</h1>
 
-      {reservations.length === 0 ? (
+      {sortedReservations.length === 0 ? (
         <p>Nemate nijednu rezervaciju.</p>
       ) : (
         <div style={{ display: "grid", gap: 14, marginTop: 16 }}>
-          {reservations.map((r) => (
+          {/* Mapiramo kroz sortirani niz umesto kroz osnovni state */}
+          {sortedReservations.map((r) => (
             <ReservationCard
               key={r.id}
               reservation={r}
               isPrivileged={isPrivileged}
               onEdit={() => setEditing(r)}
-              onChanged={load} // reload nakon izmjene/otkazivanja
+              onChanged={load} 
             />
           ))}
         </div>

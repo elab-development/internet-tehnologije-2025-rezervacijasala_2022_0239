@@ -14,16 +14,23 @@ export async function GET(req: Request) {
   }
 
   const reservations = await prisma.reservation.findMany({
-    where: {
-      userId: auth.userId,
-    },
-    include: {
-      hall: true,
-    },
-    orderBy: {
-      startDateTime: "desc",
-    },
-  });
+  where: {
+    userId: auth.userId,
+  },
+  include: {
+    hall: true,
+    user: { // DODAJEMO OVO
+      select: {
+        firstName: true,
+        lastName: true,
+        email: true,
+      }
+    }
+  },
+  orderBy: {
+    startDateTime: "desc",
+  },
+});
 
   return NextResponse.json(reservations);
 }

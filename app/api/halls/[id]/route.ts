@@ -47,6 +47,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     categoryId,
     hasStage,
     isClosed,
+    imageUrl, 
   } = body;
 
   if (
@@ -102,6 +103,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
       categoryId: catId,
       hasStage: typeof hasStage === "boolean" ? hasStage : hall.hasStage,
       isClosed: typeof isClosed === "boolean" ? isClosed : hall.isClosed,
+      imageUrl: imageUrl !== undefined ? imageUrl : hall.imageUrl, // NOVO: Snimamo sliku
     },
     include: {
       city: { select: { id: true, name: true } },

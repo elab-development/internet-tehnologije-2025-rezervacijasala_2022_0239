@@ -46,7 +46,7 @@ model Hall {
   capacity     Int
 
   pricePerHour Float  
-
+  imageUrl     String?
   isActive     Boolean @default(true)
   hasStage     Boolean @default(false)
   isClosed     Boolean @default(false)
@@ -72,12 +72,13 @@ model Reservation {
   startDateTime  DateTime
   endDateTime    DateTime
   numberOfGuests Int
-  status         ReservationStatus @default(ACTIVE)
+  status         ReservationStatus @default(PENDING)
   createdAt      DateTime @default(now())
   @@unique([hallId, startDateTime, endDateTime])
 }
 
 enum ReservationStatus {
+  PENDING
   ACTIVE
   CANCELLED
   COMPLETED

@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { useCurrency } from "@/lib/CurrencyContext"; 
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { currency, setCurrency, rates } = useCurrency();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
@@ -46,9 +47,37 @@ export default function Navbar() {
           <Link href="/halls">Sale</Link>
           <Link href="/about">O restoranu</Link>
         </div>
+        
 
         {/* desni blok*/}
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          {/* SELEKTOR VALUTA */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-main)", opacity: 0.8 }}>
+              Valuta:
+            </span>
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              style={{
+                padding: "6px 10px",
+                borderRadius: "8px",
+                border: "1px solid var(--border-color)",
+                background: "var(--card-bg)",
+                color: "var(--text-main)",
+                fontSize: "14px",
+                fontWeight: 600,
+                cursor: "pointer",
+                outline: "none",
+              }}
+            >
+              {Object.keys(rates).map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </select>
+          </div>
           {!user && (
             <>
               <Link href="/login">Prijavi se</Link>

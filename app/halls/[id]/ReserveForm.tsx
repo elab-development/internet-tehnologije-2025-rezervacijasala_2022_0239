@@ -11,6 +11,7 @@ import {
   toISOStringFromDateAndTime,
   calcDurationHoursCrossMidnight,
 } from "@/lib/time";
+import { useCurrency } from "@/lib/CurrencyContext";
 
 export default function ReserveForm({
   hallId,
@@ -22,7 +23,7 @@ export default function ReserveForm({
   capacity: number;
 }) {
   const { user } = useAuth();
-
+  const { convertPrice } = useCurrency();
   const [dateISO, setDateISO] = useState("");
   const [startHHMM, setStartHHMM] = useState("08:00");
   const [endHHMM, setEndHHMM] = useState("10:00");
@@ -190,7 +191,7 @@ export default function ReserveForm({
           Trajanje: <b>{dateISO ? durationHours : 0} h</b>
         </div>
         <div>
-          Ukupno: <b>{dateISO ? totalPrice.toFixed(2) : "0.00"} €</b>
+         Ukupno: <b>{dateISO ? convertPrice(totalPrice) : convertPrice(0)}</b>
         </div>
       </div>
 

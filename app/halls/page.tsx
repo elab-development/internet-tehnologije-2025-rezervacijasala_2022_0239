@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
 import Link from "next/link";
 import Button from "@/components/Button";
+import { useCurrency } from "@/lib/CurrencyContext";
 
 type City = { id: number; name: string };
 type Category = { id: number; name: string };
@@ -23,6 +24,7 @@ type Hall = {
 };
 
 export default function HallsPage() {
+  const { currency } = useCurrency();
   const { user } = useAuth();
 
   const [halls, setHalls] = useState<Hall[]>([]);
@@ -168,16 +170,14 @@ export default function HallsPage() {
         </div>
 
         <div style={{ flex: "1 1 140px" }}>
-          <input
-            type="number"
-            placeholder="Max €/h"
-            value={maxPrice}
-            onChange={(e) =>
-              setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))
-            }
-            style={{ ...inputStyle, width: "100%" }}
-          />
-        </div>
+        <input
+          type="number"
+          placeholder={`Max ${currency}/h`}
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))}
+          style={{ ...inputStyle, width: "100%" }}
+        />
+      </div>
 
         <div style={{ flex: "1 1 160px" }}>
           <select
