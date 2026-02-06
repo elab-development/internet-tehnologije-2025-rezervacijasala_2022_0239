@@ -1,0 +1,69 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function GET() {
+  try {
+    const currentYear = new Date().getFullYear();
+
+    // 1. Najpopularnije sale (Top 5)
+    const topHallsRaw = await prisma.reservation.groupBy({
+      by: ['hallId'],
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 5,
+    });
+
+    const popularHalls = await Promise.all(
+      topHallsRaw.map(async (item) => {
+        const hall = await prisma.hall.findUnique({
+          where: { id: item.hallId },
+          select: { name: true },
+        });
+        return { name: hall?.name || "Nepoznata", count: item._count.id };
+      })
+    );
+
+    // 2. Statistika po mesecima (Rezervacije i Zarada)
+    // Uzimamo ACTIVE i COMPLETED rezervacije jer one predstavljaju prihod
+    const reservations = await prisma.reservation.findMany({
+      where: {
+        startDateTime: {
+          gte: new Date(`${currentYear}-01-01`),
+          lte: new Date(`${currentYear}-12-31`),
+        },
+        status: { in: ['ACTIVE', 'COMPLETED'] },
+      },
+      include: {
+        hall: { select: { pricePerHour: true } } // Moramo znati cenu sale da izračunamo zaradu
+      }
+    });
+
+    const monthlyData = Array.from({ length: 12 }, (_, i) => ({
+      month: new Intl.DateTimeFormat('sr-RS', { month: 'short' }).format(new Date(currentYear, i)),
+      count: 0,
+      revenue: 0,
+    }));
+
+    reservations.forEach((res) => {
+      const monthIndex = new Date(res.startDateTime).getMonth();
+      
+      // Računamo trajanje u satima
+      const durationMs = new Date(res.endDateTime).getTime() - new Date(res.startDateTime).getTime();
+      const durationHours = durationMs / (1000 * 60 * 60);
+      
+      // Zarada = trajanje * cena po satu
+      const resRevenue = durationHours * (res.hall.pricePerHour || 0);
+
+      monthlyData[monthIndex].count += 1;
+      monthlyData[monthIndex].revenue += resRevenue;
+    });
+
+    return NextResponse.json({
+      popularHalls,
+      monthlyData,
+    });
+  } catch (error) {
+    console.error("Greška:", error);
+    return NextResponse.json({ error: "Neuspešno učitavanje podataka" }, { status: 500 });
+  }
+}

@@ -159,6 +159,15 @@ export default function Navbar() {
                     </MenuLink>
                   )}
 
+                  {(user.role === "MANAGER" || user.role === "ADMIN") && (
+                    <MenuLink
+                      href="/manager/dashboard"
+                      onClick={() => setOpen(false)}
+                    >
+                      Statistika
+                    </MenuLink>
+                  )}
+
                   {user.role === "ADMIN" && (
                     <MenuLink href="/admin/users" onClick={() => setOpen(false)}>
                       Upravljanje korisnicima
