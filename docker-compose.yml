@@ -1,0 +1,27 @@
+
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: rezervacije_sala
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "mysql://root:root@db:3306/rezervacije_sala"
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EXCHANGERATE_API_KEY: ${EXCHANGERATE_API_KEY}
+      CLOUDINARY_API_SECRET: "yKyGUM-91MLKe0rUUu9c9yCbNxQ"
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: "db9dw0hj2"
+    depends_on:
+      - db
+volumes:
+  db_data:
