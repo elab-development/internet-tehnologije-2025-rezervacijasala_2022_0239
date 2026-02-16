@@ -19,7 +19,7 @@ export default function Button({
       style={{
         padding: "10px 14px",
         borderRadius: 10,
-        border: "1px solid #e5e7eb",
+        border: "1px solid #e8ebe5",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.6 : 1,
         fontWeight: 600,

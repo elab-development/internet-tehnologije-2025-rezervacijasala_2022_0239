@@ -120,7 +120,7 @@ export default function ManagerHallsPage() {
   if (!isPrivileged) return <p style={{ padding: 24 }}>Nemaš pristup ovoj stranici.</p>;
 
   return (
-    <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
+    <main style={{ padding: 24, maxWidth: 900, margin: "0 auto", }}>
       <h1>Upravljanje salama</h1>
 
       {/* 1. SEKCIJA: FORMA ZA DODAVANJE (Izdvojena komponenta) */}
