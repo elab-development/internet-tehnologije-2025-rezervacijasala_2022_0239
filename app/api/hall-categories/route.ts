@@ -14,8 +14,8 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { name } = body;
 
-  if (!name) return NextResponse.json({ error: "Missing name" }, { status: 400 });
+  if (!name) return NextResponse.json({ error: "Nedostaje ime" }, { status: 400 });
 
   const category = await prisma.hallCategory.create({ data: { name } });
-  return NextResponse.json({ message: "Category created", category }, { status: 201 });
+  return NextResponse.json({ message: "Kategorija napravljena ", category }, { status: 201 });
 }

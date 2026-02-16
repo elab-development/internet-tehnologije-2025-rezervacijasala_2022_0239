@@ -13,7 +13,7 @@ interface AddHallFormProps {
 }
 
 export default function AddHallForm({ cities, categories, onSuccess }: AddHallFormProps) {
-  // Svi state-ovi koji su bili u page.tsx, a služe samo za DODAVANJE
+ 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [capacity, setCapacity] = useState("");
@@ -51,9 +51,9 @@ export default function AddHallForm({ cities, categories, onSuccess }: AddHallFo
       });
 
       const created = res.hall ?? res;
-      onSuccess(created); // Javljamo glavnoj stranici da doda u listu
+      onSuccess(created); 
 
-      // Resetujemo formu
+ 
       setName(""); setDescription(""); setCapacity(""); setPricePerHour("");
       setHasStage(false); setIsClosed(false); setImageUrl("");
       setMessage("Sala uspješno dodata!");

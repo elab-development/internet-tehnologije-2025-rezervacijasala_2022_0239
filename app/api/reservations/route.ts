@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
-    //svi ulogovani korisnici
+  
     const roleCheck = await requireRole(["USER", "MANAGER", "ADMIN"], req);
     if (roleCheck) return roleCheck;
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { hallId, startDateTime, endDateTime, numberOfGuests } = body;
 
-    // obavezna polja
+
     if (!hallId || !startDateTime || !endDateTime || !numberOfGuests) {
       return NextResponse.json(
         { error: "Missing fields" },
@@ -39,7 +39,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // provera da sala postoji
     const hall = await prisma.hall.findUnique({
       where: { id: Number(hallId) },
     });
@@ -51,7 +50,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // provera kapaciteta
     if (numberOfGuests > hall.capacity) {
       return NextResponse.json(
         {
@@ -61,7 +59,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // KLJUČNA PROVERA PREKLAPANJA TERMINA
+
     const conflict = await prisma.reservation.findFirst({
       where: {
         hallId: Number(hallId),
@@ -86,11 +84,11 @@ export async function POST(req: Request) {
         {
           error: "Sala je već rezervisana u tom terminu",
         },
-        { status: 409 } // Conflict
+        { status: 409 } 
       );
     }
 
-    // kreiranje rezervacije
+
     const reservation = await prisma.reservation.create({
       data: {
         userId,
@@ -101,12 +99,12 @@ export async function POST(req: Request) {
         status: "PENDING",
       },
       include: {
-        hall: true, // Da bismo znali ime sale za mejl
-        user: true, // Da bismo znali kome šaljemo
+        hall: true, 
+        user: true, 
       }
     });
 
-    // 2. Mejl korisniku
+
     await resend.emails.send({
       from: 'Rezervacije <onboarding@resend.dev>',
       to: reservation.user.email,
@@ -114,7 +112,7 @@ export async function POST(req: Request) {
       html: `Zdravo, primili smo vaš zahtev za salu <strong>${reservation.hall.name}</strong>. Obavestićemo Vas čim menadžer odobri termin.`
     });
 
-    // 3. Mejl menadžeru (ovde stavi svoj pravi mejl)
+
     await resend.emails.send({
       from: 'Sistem <onboarding@resend.dev>',
       to: 'tvoj-menadzer-email@gmail.com',

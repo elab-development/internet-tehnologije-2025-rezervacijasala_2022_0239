@@ -11,10 +11,10 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
     const cityId = Number(id);
 
     if (Number.isNaN(cityId)) {
-      return NextResponse.json({ error: "Invalid city id" }, { status: 400 });
+      return NextResponse.json({ error: "Neispravan id" }, { status: 400 });
     }
 
-    // Provera relacija (halls) pre brisanja
+
     const hallsCount = await prisma.hall.count({
       where: { cityId },
     });

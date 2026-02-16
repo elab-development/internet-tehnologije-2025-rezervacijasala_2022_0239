@@ -17,7 +17,7 @@ type Hall = {
   capacity: number;
   pricePerHour: number;
   isActive: boolean;
-  isClosed: boolean; // true = unutra, false = na otvorenom
+  isClosed: boolean; 
   hasStage: boolean;
   city?: City;
   category?: Category;
@@ -34,7 +34,7 @@ export default function HallsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // FILTER STATE
+
   const [search, setSearch] = useState("");
   const [maxPrice, setMaxPrice] = useState<number | "">("");
   const [hasStageOnly, setHasStageOnly] = useState(false);
@@ -145,7 +145,6 @@ export default function HallsPage() {
         )}
       </div>
 
-      {/* === FILTERI === */}
       <div
         style={{
           backgroundColor: "white",
@@ -237,7 +236,6 @@ export default function HallsPage() {
         </label>
       </div>
 
-      {/* === REZULTATI === */}
       {filteredHalls.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "#718096" }}>
           <p style={{ fontSize: "1.2rem" }}>Nema rezultata</p>

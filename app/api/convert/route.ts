@@ -14,10 +14,9 @@ export async function GET() {
     return NextResponse.json({ error: 'API key is missing' }, { status: 500 });
   }
 
-  // DEFINIŠEMO LISTU VALUTA
+
   const supported = ["EUR", "RSD", "USD", "CHF", "GBP", "AUD", "CAD", "BAM"];
-  
-  // MENJAMO BAZU NA EUR (jer su ti cene u bazi u EUR)
+
   const url = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/EUR`;
 
   try {
@@ -25,8 +24,7 @@ export async function GET() {
     const data: ExchangeRateResponse = await response.json();
 
     if (data.result === "success") {
-      // DINAMIČKO FILTRIRANJE:
-      // Pravimo prazan objekat koji ćemo popuniti samo valutama iz supported niza
+
       const filteredRates: { [key: string]: number } = {};
 
       supported.forEach((code) => {

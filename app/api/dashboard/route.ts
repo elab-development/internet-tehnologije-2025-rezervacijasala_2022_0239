@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const currentYear = new Date().getFullYear();
 
-    // 1. Najpopularnije sale (Top 5)
+    // Najpopularnije sale 
     const topHallsRaw = await prisma.reservation.groupBy({
       by: ['hallId'],
       _count: { id: true },
@@ -23,8 +23,7 @@ export async function GET() {
       })
     );
 
-    // 2. Statistika po mesecima (Rezervacije i Zarada)
-    // Uzimamo ACTIVE i COMPLETED rezervacije jer one predstavljaju prihod
+    // Statistika po mesecima 
     const reservations = await prisma.reservation.findMany({
       where: {
         startDateTime: {
@@ -34,7 +33,7 @@ export async function GET() {
         status: { in: ['ACTIVE', 'COMPLETED'] },
       },
       include: {
-        hall: { select: { pricePerHour: true } } // Moramo znati cenu sale da izračunamo zaradu
+        hall: { select: { pricePerHour: true } } 
       }
     });
 
@@ -47,11 +46,11 @@ export async function GET() {
     reservations.forEach((res) => {
       const monthIndex = new Date(res.startDateTime).getMonth();
       
-      // Računamo trajanje u satima
+
       const durationMs = new Date(res.endDateTime).getTime() - new Date(res.startDateTime).getTime();
       const durationHours = durationMs / (1000 * 60 * 60);
       
-      // Zarada = trajanje * cena po satu
+   
       const resRevenue = durationHours * (res.hall.pricePerHour || 0);
 
       monthlyData[monthIndex].count += 1;

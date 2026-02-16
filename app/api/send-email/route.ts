@@ -7,9 +7,9 @@ export async function POST(req: Request) {
   try {
     const { to, subject, html } = await req.json();
 
-    // Slanje mejla preko Resend-a
+
     const data = await resend.emails.send({
-      from: 'Rezervacije <onboarding@resend.dev>', // Kasnije možeš podesiti svoj domen
+      from: 'Rezervacije <onboarding@resend.dev>',
       to: to,
       subject: subject,
       html: html,

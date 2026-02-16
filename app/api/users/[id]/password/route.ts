@@ -31,7 +31,7 @@ export async function PUT(
       );
     }
 
-    // 1) Nađi korisnika kome menjaš šifru
+
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json(
@@ -42,9 +42,7 @@ export async function PUT(
 
     const isAdmin = auth.role === "ADMIN";
 
-    // 2) Ako nije admin:
-    // - može menjati samo sebi
-    // - mora dati staru šifru
+
     if (!isAdmin) {
       if (auth.userId !== userId) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -66,7 +64,7 @@ export async function PUT(
       }
     }
 
-    // 3) (Admin ili običan user nakon provjere) — upiši novu
+
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
     await prisma.user.update({
