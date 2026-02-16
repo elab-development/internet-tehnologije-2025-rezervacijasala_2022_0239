@@ -206,7 +206,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 900, margin: "0 auto" }}>
+    <main style={{ padding: 24, maxWidth: 900, margin: "0 auto",}}>
       <h1>Upravljanje korisnicima</h1>
 
       {message && <p style={{ fontSize: 14, marginTop: 8 }}>{message}</p>}
