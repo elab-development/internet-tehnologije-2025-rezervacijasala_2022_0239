@@ -111,7 +111,7 @@ export async function POST(req: Request) {
       from: 'Rezervacije <onboarding@resend.dev>',
       to: reservation.user.email,
       subject: 'Vaš zahtev za rezervaciju je primljen',
-      html: `Zdravo, primili smo vaš zahtev za salu <strong>${reservation.hall.name}</strong>. Obavestićemo vas čim menadžer odobri termin.`
+      html: `Zdravo, primili smo vaš zahtev za salu <strong>${reservation.hall.name}</strong>. Obavestićemo Vas čim menadžer odobri termin.`
     });
 
     // 3. Mejl menadžeru (ovde stavi svoj pravi mejl)

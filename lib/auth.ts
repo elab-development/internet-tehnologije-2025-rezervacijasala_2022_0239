@@ -21,7 +21,6 @@ export async function getAuth(req: Request) {
     return null;
   }
 
-  // Prisma Role.name je String; ovdje ga tretiramo kao naš Role union.
   const role = user.role.name as Role;
   return { role, userId };
 }

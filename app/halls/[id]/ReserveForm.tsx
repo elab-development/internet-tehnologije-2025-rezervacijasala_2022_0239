@@ -9,7 +9,7 @@ import {
   buildHourOptions,
   formatDateSR,
   toISOStringFromDateAndTime,
-  calcDurationHoursCrossMidnight,
+  diffHours, // Koristimo novu diffHours umesto stare calcDuration
 } from "@/lib/time";
 import { useCurrency } from "@/lib/CurrencyContext";
 
@@ -35,9 +35,12 @@ export default function ReserveForm({
 
   const hourOptions = useMemo(() => buildHourOptions(), []);
 
+  // Računamo trajanje koristeći nove ISO funkcije
   const durationHours = useMemo(() => {
-    if (!dateISO) return 0;
-    return calcDurationHoursCrossMidnight(startHHMM, endHHMM);
+    if (!dateISO || !startHHMM || !endHHMM) return 0;
+    const startISO = toISOStringFromDateAndTime(dateISO, startHHMM);
+    const endISO = toISOStringFromDateAndTime(dateISO, endHHMM);
+    return diffHours(startISO, endISO);
   }, [dateISO, startHHMM, endHHMM]);
 
   const totalPrice = useMemo(() => {
@@ -49,9 +52,9 @@ export default function ReserveForm({
     if (!user) return "Morate biti ulogovani da biste rezervisali salu.";
     if (!dateISO) return "Izaberi datum.";
 
-    const hours = calcDurationHoursCrossMidnight(startHHMM, endHHMM);
-    if (hours <= 0) return "Kraj mora biti nakon početka.";
-    if (hours < 1) return "Minimalno trajanje je 1 sat.";
+    // Jednostavna provera jer je sve u istom danu
+    if (durationHours <= 0) return "Kraj mora biti nakon početka (istog dana).";
+    if (durationHours < 1) return "Minimalno trajanje je 1 sat.";
 
     if (!numberOfGuests || numberOfGuests < 1) {
       return "Unesi ispravan broj gostiju.";
@@ -75,18 +78,9 @@ export default function ReserveForm({
       return;
     }
 
-    if (!user) return;
-
-    const crossesMidnight = (() => {
-      const [sh, sm] = startHHMM.split(":").map(Number);
-      const [eh, em] = endHHMM.split(":").map(Number);
-      return eh * 60 + em <= sh * 60 + sm;
-    })();
-
+    // Spajamo u ISO format bez brige o ponoći
     const startISO = toISOStringFromDateAndTime(dateISO, startHHMM);
-    const endISO = toISOStringFromDateAndTime(dateISO, endHHMM, {
-      nextDay: crossesMidnight,
-    });
+    const endISO = toISOStringFromDateAndTime(dateISO, endHHMM);
 
     try {
       setLoading(true);
@@ -101,7 +95,8 @@ export default function ReserveForm({
         }),
       });
 
-      setMessage("Rezervacija uspešno kreirana");
+      setMessage("Rezervacija uspešno kreirana!");
+      // Reset forme
       setDateISO("");
       setStartHHMM("08:00");
       setEndHHMM("10:00");
@@ -122,14 +117,16 @@ export default function ReserveForm({
         maxWidth: 560,
         padding: 16,
         borderRadius: 16,
-        border: "1px solid var(--border-color)",
-        background: "var(--card-bg)",
+        border: "1px solid #ddd",
+        background: "#fff",
+        color: "#333"
       }}
     >
       <div style={{ display: "grid", gap: 6 }}>
         <label style={{ fontWeight: 700 }}>Datum</label>
         <input
           type="date"
+          style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
           value={dateISO}
           min={todayISODate()}
           onChange={(e) => setDateISO(e.target.value)}
@@ -144,22 +141,26 @@ export default function ReserveForm({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div style={{ display: "grid", gap: 6 }}>
           <label style={{ fontWeight: 700 }}>Početak</label>
-          <select value={startHHMM} onChange={(e) => setStartHHMM(e.target.value)}>
+          <select 
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+            value={startHHMM} 
+            onChange={(e) => setStartHHMM(e.target.value)}
+          >
             {hourOptions.map((t) => (
-              <option key={`s-${t}`} value={t}>
-                {t}
-              </option>
+              <option key={`s-${t}`} value={t}>{t}</option>
             ))}
           </select>
         </div>
 
         <div style={{ display: "grid", gap: 6 }}>
           <label style={{ fontWeight: 700 }}>Kraj</label>
-          <select value={endHHMM} onChange={(e) => setEndHHMM(e.target.value)}>
+          <select 
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+            value={endHHMM} 
+            onChange={(e) => setEndHHMM(e.target.value)}
+          >
             {hourOptions.map((t) => (
-              <option key={`e-${t}`} value={t}>
-                {t}
-              </option>
+              <option key={`e-${t}`} value={t}>{t}</option>
             ))}
           </select>
         </div>
@@ -169,6 +170,7 @@ export default function ReserveForm({
         <label style={{ fontWeight: 700 }}>Broj gostiju</label>
         <input
           type="number"
+          style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
           min={1}
           max={capacity}
           value={numberOfGuests}
@@ -178,31 +180,25 @@ export default function ReserveForm({
 
       <div
         style={{
-          border: "1px solid var(--border-color)",
+          border: "1px solid #eee",
           borderRadius: 14,
           padding: 12,
           display: "grid",
           gap: 6,
-          background: "rgba(255,255,255,0.65)",
+          background: "#f9f9f9",
         }}
       >
         <div style={{ fontWeight: 800 }}>Sažetak</div>
-        <div>
-          Trajanje: <b>{dateISO ? durationHours : 0} h</b>
-        </div>
-        <div>
-         Ukupno: <b>{dateISO ? convertPrice(totalPrice) : convertPrice(0)}</b>
-        </div>
+        <div>Trajanje: <b>{durationHours > 0 ? durationHours : 0} h</b></div>
+        <div>Ukupno: <b>{convertPrice(totalPrice)}</b></div>
       </div>
 
       <Button type="submit" disabled={loading}>
         {loading ? "Rezervišem..." : "Rezerviši"}
       </Button>
 
-      {message && <p>{message}</p>}
-      {error && (
-        <p style={{ color: "crimson", fontWeight: 700 }}>{error}</p>
-      )}
+      {message && <p style={{ color: "green", fontWeight: 600 }}>{message}</p>}
+      {error && <p style={{ color: "crimson", fontWeight: 700 }}>{error}</p>}
     </form>
   );
 }

@@ -166,13 +166,34 @@ export default function AdminUsersPage() {
       setPwSaving(true);
       setMessage(null);
 
+      // 1. Menjamo lozinku u bazi
       await apiFetch(`/api/users/${pwUserId}/password`, {
         method: "PUT",
         body: JSON.stringify({ newPassword: newPassword.trim() }),
       });
 
+      // 2. Pronalazimo podatke o korisniku da bismo znali kome šaljemo mejl
+      const targetUser = users.find(u => u.id === pwUserId);
+
+      if (targetUser) {
+        // 3. Šaljemo obaveštenje na mejl
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: targetUser.email,
+            subject: "Reset lozinke - Restoran Ljubičica",
+            html: `
+              Poštovani ${targetUser.firstName}, 
+              Administrator je promenio Vašu lozinku. 
+              Nova lozinka je: ${newPassword.trim()}
+            `
+          }),
+        });
+      }
+
       closePasswordReset();
-      setMessage("Lozinka je uspešno promijenjena.");
+      setMessage(`Lozinka za korisnika ${targetUser?.email} je uspešno promijenjena i obaveštenje je poslato.`);
     } catch (err: any) {
       setMessage(err.message || "Greška pri promjeni lozinke");
     } finally {

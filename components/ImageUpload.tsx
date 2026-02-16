@@ -12,9 +12,9 @@ export default function ImageUpload({ onUpload, value }: ImageUploadProps) {
   return (
     <div>
       <CldUploadWidget
-        uploadPreset="sale_preset" // OVDE STAVI IME PRESETA KOJI SI NAPRAVILA
+        uploadPreset="sale_preset" // ime preset-a sa cloudinary naloga
         onSuccess={(result: any) => {
-          onUpload(result.info.secure_url); // Ovo nam vraća link do slike
+          onUpload(result.info.secure_url); // vraća link do slike
         }}
       >
         {({ open }) => (
@@ -22,7 +22,7 @@ export default function ImageUpload({ onUpload, value }: ImageUploadProps) {
             {value && (
               <img 
                 src={value} 
-                alt="Preview" 
+                alt="Preview" //Ako slika već postoji (npr. kod izmene), prikaži je kao preview
                 style={{ width: 200, height: 150, objectFit: 'cover', borderRadius: 8 }} 
               />
             )}

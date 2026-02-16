@@ -63,7 +63,7 @@ export default function ReservationCard({
       const subject = newStatus === "ACTIVE" ? "Rezervacija ODOBRENA" : "Rezervacija odbijena";
       const message = newStatus === "ACTIVE" 
         ? `Vaša rezervacija za salu <strong>${reservation.hall.name}</strong> je odobrena! Vidimo se.`
-        : `Nažalost, vaša rezervacija za salu <strong>${reservation.hall.name}</strong> je odbijena/otkazana.`;
+        : `Nažalost, Vaša rezervacija za salu <strong>${reservation.hall.name}</strong> je odbijena.`;
 
       await fetch('/api/send-email', {
         method: 'POST',
@@ -87,14 +87,72 @@ export default function ReservationCard({
     if (!user) return;
     try {
       setBusy(true);
-      await apiFetch(`/api/reservations/${reservation.id}`, {
-        method: "DELETE",
-      });
+      await apiFetch(`/api/reservations/${reservation.id}`, { method: "DELETE" });
+
+      const isManagerAction = user.role === "MANAGER" || user.role === "ADMIN";
+      // Formatiramo termin jednom da ga koristimo u svim mejlovima
+      const terminInfo = `${fmtDateTimeSR(reservation.startDateTime)} - ${fmtDateTimeSR(reservation.endDateTime)}`;
+
+      if (isManagerAction) {
+        // SCENARIO: Menadžer otkazuje korisniku
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: reservation.user?.email,
+            subject: `Otkazana rezervacija: ${reservation.hall.name}`,
+            html: `
+              <p>Poštovani,</p>
+              <p>Obaveštavamo vas da je vaša rezervacija za salu <strong>${reservation.hall.name}</strong> otkazana od strane administracije.</p>
+              <p><strong>Termin:</strong> ${terminInfo}</p>
+              <p>Za više informacija, molimo vas da nas kontaktirate.</p>
+            `
+          }),
+        });
+      } else {
+        // SCENARIO: Korisnik otkazuje sam sebi
+        
+        // 1. Potvrda korisniku
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: user.email,
+            subject: `Potvrda otkazivanja - ${reservation.hall.name}`,
+            html: `
+              <p>Uspešno ste otkazali rezervaciju.</p>
+              <ul>
+                <li><strong>Sala:</strong> ${reservation.hall.name}</li>
+                <li><strong>Termin:</strong> ${terminInfo}</li>
+              </ul>
+              <p>Nadamo se da ćemo sarađivati nekom drugom prilikom.</p>
+            `
+          }),
+        });
+
+        // 2. Obaveštenje menadžeru (da zna tačno koji je termin slobodan)
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: "admin@tvoj-sajt.com",
+            subject: `SLOBODAN TERMIN: ${reservation.hall.name}`,
+            html: `
+              <h3>Termin je ponovo slobodan</h3>
+              <p>Korisnik <strong>${user.firstName} ${user.lastName}</strong> je otkazao svoju rezervaciju.</p>
+              <ul>
+                <li><strong>Sala:</strong> ${reservation.hall.name}</li>
+                <li><strong>Otkazani termin:</strong> ${terminInfo}</li>
+              </ul>
+            `
+          }),
+        });
+      }
+
       setConfirmOpen(false);
       onChanged();
     } catch (e: any) {
-      alert(e?.message || "Greška pri otkazivanju");
-      setConfirmOpen(false);
+      alert("Greška: " + e.message);
     } finally {
       setBusy(false);
     }
