@@ -7,7 +7,7 @@ export async function GET(_req: Request, context: { params: Promise<{ id: string
   const hallId = Number(id);
 
   if (Number.isNaN(hallId)) {
-    return NextResponse.json({ error: "Invalid hall id" }, { status: 400 });
+    return NextResponse.json({ error: "Neispravan id" }, { status: 400 });
   }
 
   const hall = await prisma.hall.findUnique({
@@ -19,7 +19,7 @@ export async function GET(_req: Request, context: { params: Promise<{ id: string
   });
 
   if (!hall) {
-    return NextResponse.json({ error: "Hall not found" }, { status: 404 });
+    return NextResponse.json({ error: "Hala nije pronadjena" }, { status: 404 });
   }
 
   return NextResponse.json(hall);
@@ -103,7 +103,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
       categoryId: catId,
       hasStage: typeof hasStage === "boolean" ? hasStage : hall.hasStage,
       isClosed: typeof isClosed === "boolean" ? isClosed : hall.isClosed,
-      imageUrl: imageUrl !== undefined ? imageUrl : hall.imageUrl, // NOVO: Snimamo sliku
+      imageUrl: imageUrl !== undefined ? imageUrl : hall.imageUrl, 
     },
     include: {
       city: { select: { id: true, name: true } },

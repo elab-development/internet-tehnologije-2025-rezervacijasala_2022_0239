@@ -14,7 +14,7 @@ import {
   Legend,
 } from "chart.js";
 
-// Registracija neophodnih elemenata za Chart.js
+//Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -56,7 +56,7 @@ export default function ManagerDashboard() {
 
       <div className="flex flex-col gap-8">
         
-        {/* 1. Najpopularnije sale - Bar Chart */}
+        /* 1. Najpopularnije sale - Bar Chart */
         <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
           <h2 className="text-xl font-semibold mb-4 text-gray-700">Najpopularnije sale (Top 5)</h2>
           <div className="h-[300px]">
@@ -77,7 +77,7 @@ export default function ManagerDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
-          {/* 2. Rezervacije po mjesecu - Line Chart */}
+          2. Rezervacije po mjesecu - Line Chart */
           <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
             <h2 className="text-xl font-semibold mb-4 text-gray-700">Broj rezervacija po mjesecu</h2>
             <div className="h-[300px]">
@@ -98,7 +98,7 @@ export default function ManagerDashboard() {
             </div>
           </div>
 
-          {/* 3. Zarada po mjesecu - Bar Chart */}
+          {/* Zarada po mjesecu - Bar Chart */}
           <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
             <h2 className="text-xl font-semibold mb-4 text-gray-700">Zarada po mjesecu (EUR)</h2>
             <div className="h-[300px]">
@@ -109,7 +109,7 @@ export default function ManagerDashboard() {
                   datasets: [{
                     label: "Zarada",
                     data: stats.monthlyData.map((m: any) => m.revenue),
-                    backgroundColor: "rgba(16, 185, 129, 0.7)", // Zelena
+                    backgroundColor: "rgba(16, 185, 129, 0.7)", 
                     borderRadius: 8,
                   }]
                 }} 

@@ -14,7 +14,7 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid user id" }, { status: 400 });
     }
 
-    // sad prima i role (opciono)
+
     const { firstName, lastName, role } = await req.json();
 
     if (!firstName || !lastName) {
@@ -29,23 +29,23 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ako nije ADMIN, onda može menjati samo sebe
+
     if (auth.role !== "ADMIN" && auth.userId !== userId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // pripremi data objekat za update
+
     const data: any = { firstName, lastName };
 
-    // samo ADMIN sme da menja ulogu
+ 
     if (role) {
       if (auth.role !== "ADMIN") {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
-      // nađi Role po imenu u bazi (Role tabela)
+  
       const roleRow = await prisma.role.findUnique({
-        where: { name: role }, // role je "USER" | "MANAGER" | "ADMIN"
+        where: { name: role }, 
       });
 
       if (!roleRow) {
@@ -73,7 +73,7 @@ export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  // samo ADMIN
+
   const roleCheck = await requireRole(["ADMIN"], req);
   if (roleCheck) return roleCheck;
 

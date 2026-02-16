@@ -30,15 +30,14 @@ export default function AdminUsersPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // delete confirm
   const [confirmUserId, setConfirmUserId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // edit mode
+
   const [editing, setEditing] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // reset password modal (using reusable ConfirmModal)
+
   const [pwUserId, setPwUserId] = useState<number | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
@@ -71,7 +70,6 @@ export default function AdminUsersPage() {
       .finally(() => setLoading(false));
   }, [currentUser]);
 
-  // zaštita
   if (!currentUser) return null;
 
   if (currentUser.role !== "ADMIN") {
@@ -114,7 +112,7 @@ export default function AdminUsersPage() {
         body: JSON.stringify({
           firstName: editing.firstName.trim(),
           lastName: editing.lastName.trim(),
-          role: editing.role, // backend: ADMIN može menjati ulogu
+          role: editing.role, 
         }),
       });
 
@@ -166,17 +164,16 @@ export default function AdminUsersPage() {
       setPwSaving(true);
       setMessage(null);
 
-      // 1. Menjamo lozinku u bazi
+
       await apiFetch(`/api/users/${pwUserId}/password`, {
         method: "PUT",
         body: JSON.stringify({ newPassword: newPassword.trim() }),
       });
 
-      // 2. Pronalazimo podatke o korisniku da bismo znali kome šaljemo mejl
       const targetUser = users.find(u => u.id === pwUserId);
 
       if (targetUser) {
-        // 3. Šaljemo obaveštenje na mejl
+
         await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -348,7 +345,6 @@ export default function AdminUsersPage() {
                   )}
                 </div>
 
-                {/* RIGHT ACTIONS */}
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   {!isEditingThis ? (
                     <>
@@ -384,7 +380,7 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Confirm: brisanje */}
+
       <ConfirmModal
         open={confirmUserId !== null}
         title="Brisanje korisnika"
@@ -396,7 +392,7 @@ export default function AdminUsersPage() {
         onConfirm={confirmDeleteUser}
       />
 
-      {/* Confirm: reset lozinke */}
+
       <ConfirmModal
         open={pwUserId !== null}
         title="Reset lozinke"

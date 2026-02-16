@@ -30,7 +30,7 @@ export default function ReservationCard({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  // LOGIKA ZA AKCIJE (Izmena/Otkazivanje dozvoljeno samo ako je ACTIVE i na vreme)
+  // 
   const canAction =
     reservation.status === "ACTIVE" &&
     canModifyOrCancel(reservation.startDateTime);
@@ -49,17 +49,16 @@ export default function ReservationCard({
     return durationHours * pricePerHour;
   }, [durationHours, reservation.hall?.pricePerHour]);
 
-  // FUNKCIJA ZA ODOBRAVANJE / ODBIJANJE (Samo za Manager/Admin)
+  // odobravanje/odbijanje(Samo za Manager/Admin)
   async function handleStatusUpdate(newStatus: "ACTIVE" | "CANCELLED") {
     try {
       setBusy(true);
-      // 1. Ažuriramo status u bazi (napravi ovu rutu na backendu ili koristi postojeću PUT rutu)
+  
       await apiFetch(`/api/reservations/${reservation.id}`, {
         method: "PUT",
         body: JSON.stringify({ status: newStatus }),
       });
 
-      // 2. Šaljemo mejl korisniku o odluci
       const subject = newStatus === "ACTIVE" ? "Rezervacija ODOBRENA" : "Rezervacija odbijena";
       const message = newStatus === "ACTIVE" 
         ? `Vaša rezervacija za salu <strong>${reservation.hall.name}</strong> je odobrena! Vidimo se.`
@@ -69,13 +68,13 @@ export default function ReservationCard({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: reservation.user?.email, // Nadamo se da je email tu
+          to: reservation.user?.email, 
           subject: subject,
           html: message
         }),
       });
 
-      onChanged(); // Osveži listu
+      onChanged(); 
     } catch (e: any) {
       alert("Greška: " + e.message);
     } finally {
@@ -90,11 +89,11 @@ export default function ReservationCard({
       await apiFetch(`/api/reservations/${reservation.id}`, { method: "DELETE" });
 
       const isManagerAction = user.role === "MANAGER" || user.role === "ADMIN";
-      // Formatiramo termin jednom da ga koristimo u svim mejlovima
+
       const terminInfo = `${fmtDateTimeSR(reservation.startDateTime)} - ${fmtDateTimeSR(reservation.endDateTime)}`;
 
       if (isManagerAction) {
-        // SCENARIO: Menadžer otkazuje korisniku
+        //Menadžer otkazuje korisniku
         await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -110,9 +109,9 @@ export default function ReservationCard({
           }),
         });
       } else {
-        // SCENARIO: Korisnik otkazuje sam sebi
+        //Korisnik otkazuje sam sebi
         
-        // 1. Potvrda korisniku
+        // Potvrda korisniku
         await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -130,7 +129,7 @@ export default function ReservationCard({
           }),
         });
 
-        // 2. Obaveštenje menadžeru (da zna tačno koji je termin slobodan)
+        //Obaveštenje menadžeru
         await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -198,10 +197,9 @@ export default function ReservationCard({
         </div>
       </div>
 
-      {/* AKCIJE */}
+
       <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap", marginTop: 10 }}>
         
-        {/* NOVO: Dugmići za menadžera ako je na čekanju */}
         {isPrivileged && reservation.status === "PENDING" && (
           <>
             <Button onClick={() => handleStatusUpdate("ACTIVE")} disabled={busy}>
@@ -213,7 +211,6 @@ export default function ReservationCard({
           </>
         )}
 
-        {/* Standardne akcije */}
         <Button onClick={onEdit} disabled={!canAction || busy}>
           Izmeni
         </Button>

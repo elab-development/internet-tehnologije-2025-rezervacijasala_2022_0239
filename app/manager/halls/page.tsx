@@ -70,8 +70,6 @@ export default function ManagerHallsPage() {
       .finally(() => setLoading(false));
   }, [isPrivileged, user]);
 
-  //LOGIKA ZA UPRAVLJANJE
-
   async function updateHall(updatedData: any) {
     if (!editingHall) return;
     try {
@@ -123,14 +121,13 @@ export default function ManagerHallsPage() {
     <main style={{ padding: 24, maxWidth: 900, margin: "0 auto", }}>
       <h1>Upravljanje salama</h1>
 
-      {/* 1. SEKCIJA: FORMA ZA DODAVANJE (Izdvojena komponenta) */}
       <AddHallForm 
         cities={cities} 
         categories={categories} 
         onSuccess={(newHall) => setHalls((prev) => [newHall, ...prev])} 
       />
 
-      {/* 2. SEKCIJA: LISTA POSTOJEĆIH SALA */}
+
       <section style={{ marginTop: 32 }}>
         <h2>Postojeće sale</h2>
         {actionMessage && (
@@ -173,9 +170,8 @@ export default function ManagerHallsPage() {
         </div>
       </section>
 
-      {/* 3. SEKCIJA: MODALI (Pojavljuju se samo kad su potrebni) */}
-      
-      {/* Modal za potvrdu brisanja */}
+
+
       <ConfirmModal
         open={confirmHallId !== null}
         title="Brisanje sale"
@@ -186,7 +182,6 @@ export default function ManagerHallsPage() {
         onConfirm={() => removeHall(confirmHallId!)}
       />
 
-      {/* Modal za izmjenu (Izdvojena komponenta) */}
       {editingHall && (
         <EditHallModal 
           hall={editingHall}

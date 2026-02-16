@@ -38,7 +38,7 @@ export async function apiFetch(
     const message =
       data?.error ||
       data?.message ||
-      `Request failed with status ${response.status}`;
+      `Zahtev neuspesan, status: ${response.status}`;
 
     throw new Error(message);
   }

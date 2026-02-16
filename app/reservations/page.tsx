@@ -28,7 +28,6 @@ export default function MyReservationsPage() {
 
   const [editing, setEditing] = useState<Reservation | null>(null);
 
-  // --- LOGIKA ZA SORTIRANJE ---
   // Koristimo useMemo da sortiramo podatke čim stignu iz baze
   const sortedReservations = useMemo(() => {
     return [...reservations].sort((a, b) => {

@@ -116,7 +116,7 @@ export default function DataEntryPage() {
     }
   }
 
-  // --- STILOVI ---
+
   const containerStyle: React.CSSProperties = { padding: "60px 20px", width: "100%", display: "flex", flexDirection: "column", alignItems: "center", minHeight: "100vh" };
   const contentWrapper: React.CSSProperties = { width: "100%", maxWidth: "1100px", display: "flex", flexDirection: "column" };
   const gridStyle: React.CSSProperties = { display: "flex", gap: "30px", flexWrap: "wrap", width: "100%", justifyContent: "center", marginTop: "40px" };

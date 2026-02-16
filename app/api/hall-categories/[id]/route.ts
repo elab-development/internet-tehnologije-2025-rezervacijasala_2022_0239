@@ -10,7 +10,7 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
   const categoryId = Number(id);
 
   if (Number.isNaN(categoryId)) {
-    return NextResponse.json({ error: "Invalid category id" }, { status: 400 });
+    return NextResponse.json({ error: "Neispravan id" }, { status: 400 });
   }
 
   try {

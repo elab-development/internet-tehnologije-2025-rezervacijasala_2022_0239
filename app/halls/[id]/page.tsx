@@ -157,7 +157,7 @@ export default function HallDetailsPage({
     alignItems: "start",
   }}
 >
-  {/* LEVO – REZERVACIJA */}
+
   <div>
     <h2>Rezerviši ovu salu</h2>
 
@@ -168,7 +168,6 @@ export default function HallDetailsPage({
     />
   </div>
 
-  {/* DESNO – ZAUZETI TERMINI */}
   <div>
     <h3>Zauzeti termini</h3>
 

@@ -66,14 +66,11 @@ export async function PUT(
 
   const isPrivileged = auth.role === "ADMIN" || auth.role === "MANAGER";
 
-  // 1. PROVERA PRAVA PRISTUPA
   if (!isPrivileged && reservation.userId !== auth.userId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // 2. PROVERA ROKA OD 15 DANA
-  // Ovo važi samo ako korisnik pokušava da menja termin (vreme), 
-  // ali NE važi za menadžera koji menja status (odobrava/odbija).
+
   if (!isPrivileged && (startDateTime || endDateTime)) {
     const diff = new Date(reservation.startDateTime).getTime() - Date.now();
     if (diff < FIFTEEN_DAYS_MS) {
@@ -84,7 +81,7 @@ export async function PUT(
     }
   }
 
-  // 3. PROVERA KONFLIKTA TERMINA (samo ako se menja vreme ili ako se odobrava)
+
   if (startDateTime && endDateTime && (status === "ACTIVE" || reservation.status === "ACTIVE")) {
     const conflict = await prisma.reservation.findFirst({
       where: {
@@ -104,11 +101,11 @@ export async function PUT(
     }
   }
 
-  // 4. AŽURIRANJE U BAZI
+
   const updated = await prisma.reservation.update({
     where: { id: reservationId },
     data: {
-      // Koristimo ternarne operatore ili "undefined" da ne bismo pregazili stare vrednosti ako nisu poslate
+
       startDateTime: startDateTime ? new Date(startDateTime) : undefined,
       endDateTime: endDateTime ? new Date(endDateTime) : undefined,
       numberOfGuests: numberOfGuests !== undefined ? numberOfGuests : undefined,

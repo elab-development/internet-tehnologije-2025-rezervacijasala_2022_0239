@@ -33,9 +33,6 @@ export default function ProfilePage() {
 
   const u = user;
 
-  /* ============================
-     IZMJENA IMENA I PREZIMENA
-     ============================ */
   async function handleUpdateInfo() {
     setMessage("");
 
@@ -53,7 +50,6 @@ export default function ProfilePage() {
         }),
       });
 
-      // odmah ažuriramo auth state
       updateUser({
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
@@ -66,9 +62,7 @@ export default function ProfilePage() {
     }
   }
 
-  /* ============================
-     PROMJENA ŠIFRE
-     ============================ */
+
   async function handleChangePassword() {
     setMessage("");
 
@@ -126,7 +120,7 @@ export default function ProfilePage() {
           border: "1px solid #f0f0f0",
         }}
       >
-        {/* ===== PRIKAZ PODATAKA ===== */}
+
         {!isEditing && !isChangingPass && (
           <div style={{ display: "grid", gap: 24 }}>
             <div style={{ textAlign: "center" }}>
@@ -200,7 +194,6 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* ===== IZMJENA IMENA ===== */}
         {isEditing && (
           <div style={{ display: "grid", gap: 20 }}>
             <h3 style={{ margin: 0 }}>Uredi ime i prezime</h3>
@@ -215,7 +208,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* ===== PROMJENA ŠIFRE ===== */}
+
         {isChangingPass && (
           <div style={{ display: "grid", gap: 20 }}>
             <h3 style={{ margin: 0 }}>Promjena šifre</h3>

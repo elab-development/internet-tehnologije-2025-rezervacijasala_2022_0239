@@ -14,8 +14,8 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { name } = body;
 
-  if (!name) return NextResponse.json({ error: "Missing name" }, { status: 400 });
+  if (!name) return NextResponse.json({ error: "Nema imena" }, { status: 400 });
 
   const city = await prisma.city.create({ data: { name } });
-  return NextResponse.json({ message: "City created", city }, { status: 201 });
+  return NextResponse.json({ message: "Grad kreiran", city }, { status: 201 });
 }

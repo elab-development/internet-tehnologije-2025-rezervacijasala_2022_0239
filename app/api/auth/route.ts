@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: "Korinsik vec postoji" },
         { status: 409 }
       );
     }
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     if (!userRole) {
       return NextResponse.json(
-        { error: "Role USER not found" },
+        { error: "Rola nije pronadjena" },
         { status: 500 }
       );
     }
@@ -48,10 +48,10 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ message: "User created", user });
+    return NextResponse.json({ message: "Korisik kreiran", user });
   } catch (error) {
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Greska na serveru" },
       { status: 500 }
     );
   }

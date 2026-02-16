@@ -52,7 +52,7 @@ export default function ReserveForm({
     if (!user) return "Morate biti ulogovani da biste rezervisali salu.";
     if (!dateISO) return "Izaberi datum.";
 
-    // Jednostavna provera jer je sve u istom danu
+  
     if (durationHours <= 0) return "Kraj mora biti nakon početka (istog dana).";
     if (durationHours < 1) return "Minimalno trajanje je 1 sat.";
 
@@ -78,7 +78,6 @@ export default function ReserveForm({
       return;
     }
 
-    // Spajamo u ISO format bez brige o ponoći
     const startISO = toISOStringFromDateAndTime(dateISO, startHHMM);
     const endISO = toISOStringFromDateAndTime(dateISO, endHHMM);
 
@@ -96,7 +95,7 @@ export default function ReserveForm({
       });
 
       setMessage("Rezervacija uspešno kreirana!");
-      // Reset forme
+
       setDateISO("");
       setStartHHMM("08:00");
       setEndHHMM("10:00");
