@@ -3,14 +3,13 @@ export async function apiFetch(
   url: string,
   options: RequestInit = {}
 ) {
-  // 1. Ovde pravimo prazne hedere ili uzimamo one koje si ti poslala
+  // pravimo prazne hedere ili uzimamo one koji su poslati
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
 
-  // 2. AUTOMATSKI TRAŽIMO KORISNIKA
-  // Ne čekamo da nam ga ti pošalješ, nego sami gledamo u localStorage
+  // automatski trazimo korisnika
   // "auth_user" je ključ koji smo definisali u AuthContext-u
   const storedUser = localStorage.getItem("auth_user");
 
@@ -23,7 +22,7 @@ export async function apiFetch(
     }
   }
 
-  // 3. Šaljemo zahtev sa novim hederima
+  // šaljemo zahtev sa novim hederima
   const response = await fetch(url, {
     ...options,
     headers,

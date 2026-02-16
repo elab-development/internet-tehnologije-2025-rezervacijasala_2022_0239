@@ -13,7 +13,7 @@ type Hall = {
 
 export default function HallCard({ hall }: { hall: Hall }) {
   const { convertPrice } = useCurrency();
-  const imageSrc = hall.imageUrl || `/images/halls/${hall.id}.jpg`;
+  const imageSrc = hall.imageUrl || "/images/restaurant/placeholder.png";
   return (
     <div
       style={{
@@ -30,8 +30,9 @@ export default function HallCard({ hall }: { hall: Hall }) {
         src={imageSrc}
         alt={hall.name}
         onError={(e) => {
-          // Ako slika ne postoji ni na jednom putu, postavi placeholder
-          (e.target as HTMLImageElement).src = "/images/placeholder-hall.jpg";
+          // Ako URL koji je menadžer uneo ne radi (404), postavi placeholder
+          const target = e.target as HTMLImageElement;
+          target.src = "/images/restaurant/placeholder.png";
         }}
         style={{ width: "100%", height: 160, objectFit: "cover" }}
       />

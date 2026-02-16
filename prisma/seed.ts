@@ -4,7 +4,6 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
-  // --- 1) ROLE (ID 1/2/3 kao na slici) ---
   await prisma.role.upsert({
     where: { id: 1 },
     update: {},
@@ -21,14 +20,9 @@ async function main() {
     create: { id: 3, name: "ADMIN" },
   });
 
-  // --- 2) USERS (ne komplikujemo: generišemo hash iz lozinke) ---
-  // Lozinke (da se možeš ulogovati posle reset-a):
-  // Doris:  Doris123!
-  // Luka:   Admin123!
-  // Marko:  Marko123!
-  const dorisHash = await bcrypt.hash("Doris123!", 10);
-  const adminHash = await bcrypt.hash("Admin123!", 10);
-  const markoHash = await bcrypt.hash("Marko123!", 10);
+  const dorisHash = await bcrypt.hash("123456", 10);
+  const adminHash = await bcrypt.hash("123456!", 10);
+  const markoHash = await bcrypt.hash("123456!", 10);
 
   await prisma.user.upsert({
     where: { id: 1 },
@@ -36,10 +30,10 @@ async function main() {
     create: {
       id: 1,
       firstName: "Doris",
-      lastName: "Smuljic",
+      lastName: "Smulja",
       email: "doris@gmail.com",
       passwordHash: dorisHash,
-      roleId: 1,
+      roleId: 2,
       createdAt: new Date("2026-01-01T10:00:00.000Z"),
     },
   });
@@ -50,8 +44,8 @@ async function main() {
     create: {
       id: 2,
       firstName: "Luka",
-      lastName: "Hristovic",
-      email: "admin@gm.com",
+      lastName: "Hristov",
+      email: "luka@gmail.com",
       passwordHash: adminHash,
       roleId: 3,
       createdAt: new Date("2026-01-01T10:05:00.000Z"),
@@ -63,16 +57,15 @@ async function main() {
     update: {},
     create: {
       id: 3,
-      firstName: "Marko",
-      lastName: "Jovic",
-      email: "marko@gmail.com",
+      firstName: "Jovan",
+      lastName: "Teofilovic",
+      email: "jovan@gmail.com",
       passwordHash: markoHash,
       roleId: 1,
       createdAt: new Date("2026-01-01T10:10:00.000Z"),
     },
   });
 
-  // --- 3) HALL CATEGORY (1:1) ---
   await prisma.hallCategory.upsert({
     where: { id: 1 },
     update: {},
@@ -94,7 +87,6 @@ async function main() {
     create: { id: 4, name: "ROĐENDANSKA" },
   });
 
-  // --- 4) CITY (1:1) ---
   await Promise.all([
     prisma.city.upsert({
       where: { id: 1 },
@@ -123,36 +115,10 @@ async function main() {
     }),
   ]);
 
-  // --- 5) HALLS (OVO TI JE NAJBITNIJE: 1:1 po slici) ---
-  // Napomena: opisi su “što sličniji” jer na slici su skraćeni (…),
-  // ali polja (ID/cityId/categoryId/capacity/price/flags) su 1:1 kako si prikazala.
+
   const halls = [
     {
       id: 1,
-      name: "Mala sala",
-      description: "Ova sala je slatka.",
-      capacity: 50,
-      pricePerHour: 30,
-      isActive: true,
-      hasStage: false,
-      isClosed: true,
-      cityId: 3, // Novi Pazar
-      categoryId: 4, // ROĐENDANSKA
-    },
-    {
-      id: 2,
-      name: "LUX",
-      description: "Naša najekskluzivnija sala.",
-      capacity: 100,
-      pricePerHour: 60,
-      isActive: true,
-      hasStage: true,
-      isClosed: true,
-      cityId: 1, // Beograd
-      categoryId: 4, // ROĐENDANSKA
-    },
-    {
-      id: 3,
       name: "Glavna sala",
       description: "Standardna sala za venčanja i veće proslave.",
       capacity: 250,
@@ -160,11 +126,12 @@ async function main() {
       isActive: true,
       hasStage: true,
       isClosed: true,
-      cityId: 1, // Beograd
-      categoryId: 1, // VENČANA
+      cityId: 1,
+      categoryId: 1,
+      imageUrl: "/images/halls/glavna.jpg",
     },
     {
-      id: 4,
+      id: 2,
       name: "Roze sala",
       description: "Moderna i šik sala sa roze detaljima.",
       capacity: 200,
@@ -172,11 +139,12 @@ async function main() {
       isActive: true,
       hasStage: true,
       isClosed: true,
-      cityId: 2, // Novi Sad
-      categoryId: 1, // VENČANA
+      cityId: 2,
+      categoryId: 1,
+      imageUrl: "/images/halls/roze.jpg",
     },
     {
-      id: 5,
+      id: 3,
       name: "Romantična sala",
       description: "Ako ste oduvek zamišljali romantičan ambijent.",
       capacity: 150,
@@ -184,11 +152,12 @@ async function main() {
       isActive: true,
       hasStage: true,
       isClosed: false,
-      cityId: 4, // Niš
-      categoryId: 1, // VENČANA
+      cityId: 4,
+      categoryId: 1,
+      imageUrl: "/images/halls/romanticna.jpg",
     },
     {
-      id: 6,
+      id: 4,
       name: "Biznis 101",
       description: "Konferencijska sala, idealna za sastanke i prezentacije.",
       capacity: 80,
@@ -196,11 +165,12 @@ async function main() {
       isActive: true,
       hasStage: true,
       isClosed: true,
-      cityId: 1, // Beograd
-      categoryId: 3, // POSLOVNA
+      cityId: 1,
+      categoryId: 3,
+      imageUrl: "/images/halls/poslovna.jpg",
     },
     {
-      id: 7,
+      id: 5,
       name: "Sreća",
       description: "Sala za naše mališane i porodična okupljanja.",
       capacity: 50,
@@ -208,8 +178,9 @@ async function main() {
       isActive: true,
       hasStage: false,
       isClosed: true,
-      cityId: 2, // Novi Sad
-      categoryId: 3, // POSLOVNA (po tvojoj slici)
+      cityId: 2,
+      categoryId: 2, // Ispravljeno na DEČIJA (id 2)
+      imageUrl: "/images/halls/sreca.jpg",
     },
   ];
 
@@ -226,63 +197,17 @@ async function main() {
         isClosed: h.isClosed,
         cityId: h.cityId,
         categoryId: h.categoryId,
+        imageUrl: h.imageUrl,
       },
       create: h,
     });
   }
 
-  // --- 6) RESERVATIONS (da liči na tvoje test podatke, ali nije kritično) ---
-  // Ako hoćeš 1:1 i za rezervacije — možemo kasnije dotegnuti do poslednjeg detalja.
-  await prisma.reservation.upsert({
-    where: { id: 7 },
-    update: {},
-    create: {
-      id: 7,
-      userId: 1,
-      hallId: 1,
-      startDateTime: new Date("2026-04-08T06:00:00.000Z"),
-      endDateTime: new Date("2026-04-08T08:00:00.000Z"),
-      numberOfGuests: 1,
-      status: ReservationStatus.ACTIVE,
-      createdAt: new Date("2026-01-27T10:16:24.299Z"),
-    },
-  });
-
-  await prisma.reservation.upsert({
-    where: { id: 8 },
-    update: {},
-    create: {
-      id: 8,
-      userId: 3,
-      hallId: 5,
-      startDateTime: new Date("2026-02-15T18:00:00.000Z"),
-      endDateTime: new Date("2026-02-15T23:00:00.000Z"),
-      numberOfGuests: 80,
-      status: ReservationStatus.CANCELLED,
-      createdAt: new Date("2026-01-30T16:44:28.525Z"),
-    },
-  });
-
-  await prisma.reservation.upsert({
-    where: { id: 9 },
-    update: {},
-    create: {
-      id: 9,
-      userId: 3,
-      hallId: 6,
-      startDateTime: new Date("2026-04-23T06:00:00.000Z"),
-      endDateTime: new Date("2026-04-23T08:00:00.000Z"),
-      numberOfGuests: 1,
-      status: ReservationStatus.CANCELLED,
-      createdAt: new Date("2026-01-30T17:13:49.581Z"),
-    },
-  });
-
-  console.log("✅ Seed završen.");
-  console.log("➡️ Login kredencijali nakon reset-a:");
-  console.log("USER:  doris@gmail.com / Doris123!");
-  console.log("ADMIN: admin@gm.com / Admin123!");
-  console.log("USER:  marko@gmail.com / Marko123!");
+  console.log("Seed završen.");
+  console.log("Login kredencijali:");
+  console.log("MANAGER: doris@gmail.com / 123456");
+  console.log("ADMIN:   luka@gmail.com / 123456!");
+  console.log("USER:    jovan@gmail.com / 123456!");
 }
 
 main()
