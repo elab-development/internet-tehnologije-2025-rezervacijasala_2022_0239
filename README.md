@@ -13,7 +13,7 @@ Web aplikacija za **pretragu i rezervaciju sala**, razvijena u **Next.js (App Ro
 - **bcrypt** (hash lozinki)
 - **next-cloudinary** (rad sa slikama)
 - **resend** (slanje emailova)
-- **Swagger** (`swagger-jsdoc`, `swagger-ui-react`, `swagger-ui-express`)
+- **Swagger / OpenAPI** (`swagger-jsdoc`, `swagger-ui-react`, `swagger-ui-express`)
 
 ---
 
@@ -21,12 +21,14 @@ Web aplikacija za **pretragu i rezervaciju sala**, razvijena u **Next.js (App Ro
 
 ```
 .
-├── app/                # Next.js App Router + API rute (app/api/**)
-├── components/         # UI komponente
-├── lib/                # Shared util (npr. prisma client)
-├── prisma/             # schema, migrations, seed
-├── public/             # statički fajlovi
-├── .env                # environment varijable (ne commitovati)
+├── app/                 # Next.js App Router + API rute (app/api/**)
+├── components/          # UI komponente
+├── lib/                 # Shared util (npr. prisma client)
+├── prisma/              # schema, migrations, seed
+├── public/              # statički fajlovi
+├── docker-compose.yml   # Docker compose (MySQL + app)
+├── Dockerfile           # Docker build za Next app
+├── .env                 # environment varijable (ne commitovati)
 ├── next.config.ts
 ├── eslint.config.mjs
 ├── postcss.config.mjs
@@ -40,28 +42,33 @@ Web aplikacija za **pretragu i rezervaciju sala**, razvijena u **Next.js (App Ro
 
 ## Preduslovi (Prerequisites)
 - **Node.js** 18+ (preporuka)
-- **MySQL** (lokalno ili Docker)
 - **npm**
+- **MySQL** (lokalno ili Docker)
 
 ---
 
 ## Podešavanje okruženja (.env)
 
-Kreiraj `.env` fajl u root-u projekta.
+Kreiraj `.env` fajl u root-u projekta (ne commitovati).
 
-### Minimalno (Prisma + MySQL)
 ```bash
-DATABASE_URL="mysql://USER:PASSWORD@HOST:3306/DB_NAME"
-```
-
-Primer za lokalni MySQL:
-```bash
+# MySQL / Prisma (LOCAL - kada pokrećeš aplikaciju preko npm run dev)
 DATABASE_URL="mysql://root:root@localhost:3306/rezervacija_sala"
+
+# Kursna lista
+EXCHANGERATE_API_KEY="..."
+
+# Email (Resend)
+RESEND_API_KEY="..."
+
+# Cloudinary
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="..."
+CLOUDINARY_API_SECRET="..."
 ```
 
 ---
 
-## Pokretanje aplikacije
+## Pokretanje aplikacije (Local)
 
 1) Instalacija paketa:
 ```bash
@@ -92,6 +99,18 @@ Aplikacija radi na: http://localhost:3000
 
 ---
 
+## Swagger / API dokumentacija
+
+- Swagger UI: `http://localhost:3000/swagger`
+- OpenAPI JSON: `http://localhost:3000/api/swagger`
+
+### Kako testirati protected rute (BearerAuth)
+1) Pozovi `POST /api/auth/login` i uzmi `token` iz response-a  
+2) Klikni **Authorize** (katanac) u Swagger UI i nalepi token  
+3) Testiraj protected endpoint-e preko **Try it out**
+
+---
+
 ## Prisma korisne komande
 
 ```bash
@@ -102,12 +121,74 @@ npx prisma migrate reset    # reset baze (briše podatke)
 
 ---
 
-## Docker (MySQL)
+## Docker
 
-Docker fajlovi (`docker-compose.yml`) će biti dodati naknadno. Kad budu dostupni, ovde će biti dokumentovano:
-- `docker compose up -d` (pokretanje baze)
-- podešavanje `DATABASE_URL` (localhost vs db)
-- `docker compose down` (gašenje)
+U projektu već postoje Docker fajlovi (`docker-compose.yml` i `Dockerfile`).
+
+### Opcija A (preporučeno): samo MySQL u Docker-u, aplikacija lokalno
+
+1) Pokreni bazu:
+```bash
+docker compose up -d db
+```
+
+2) U `.env` koristi localhost konekciju (jer app radi na host-u):
+```bash
+DATABASE_URL="mysql://root:root@localhost:3306/rezervacija_sala"
+```
+
+3) Migracije + start aplikacije:
+```bash
+npx prisma migrate dev
+npm run dev
+```
+
+Gašenje:
+```bash
+docker compose down
+```
+
+---
+
+### Opcija B: aplikacija + MySQL u Docker-u (app + db)
+
+1) Pokretanje:
+```bash
+docker compose up --build
+```
+
+Aplikacija radi na: http://localhost:3000
+
+2) Gašenje:
+```bash
+docker compose down
+```
+
+Brisanje i podataka iz baze (volume):
+```bash
+docker compose down -v
+```
+
+> U Docker režimu aplikacija koristi DB hostname `db` (unutar docker network-a).
+> U `docker-compose.yml` baza je postavljena na **rezervacije_sala**, pa je i `DATABASE_URL` u compose-u:
+> `mysql://root:root@db:3306/rezervacije_sala`.
+
+---
+
+## Troubleshooting
+
+### Prisma error P2021 (table does not exist)
+Najčešće znači da migracije nisu odrađene na bazi:
+```bash
+npx prisma migrate dev
+```
+
+### Port već zauzet
+Podrazumevani portovi:
+- App: **3000**
+- MySQL: **3306**
+
+Ugasiti procese koji koriste port ili promeniti port mapping u `docker-compose.yml`.
 
 ---
 
