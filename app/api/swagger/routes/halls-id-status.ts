@@ -2,6 +2,8 @@
  * @swagger
  * /api/halls/{id}/status:
  *   put:
+ *     tags:
+ *       - Halls
  *     summary: Promeni status sale (isActive i isClosed) – zahteva MANAGER ili ADMIN rolu
  *     parameters:
  *       - in: path

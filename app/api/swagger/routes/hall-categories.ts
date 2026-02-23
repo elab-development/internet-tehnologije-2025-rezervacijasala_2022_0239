@@ -2,6 +2,8 @@
  * @swagger
  * /api/hall-categories:
  *   get:
+ *     tags:
+ *       - HallCategories
  *     summary: Dohvati sve kategorije sala
  *     responses:
  *       200:
@@ -20,6 +22,8 @@
  *                     type: string
  *                     example: Konferencijska
  *   post:
+ *     tags:
+ *       - HallCategories
  *     summary: Kreiraj novu kategoriju sale (zahteva MANAGER ili ADMIN rolu)
  *     requestBody:
  *       required: true

@@ -2,6 +2,8 @@
  * @swagger
  * /api/halls/admin:
  *   get:
+ *     tags:
+ *       - Halls
  *     summary: Dohvati sve sale (samo za MANAGER ili ADMIN)
  *     description: Vraća sve sale uključujući njihove gradove i kategorije. Pristup je ograničen na MANAGER i ADMIN.
  *     responses:

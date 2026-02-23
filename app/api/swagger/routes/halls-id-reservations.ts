@@ -2,6 +2,8 @@
  * @swagger
  * /api/halls/{id}/reservations:
  *   get:
+ *     tags:
+ *       - Halls
  *     summary: Dohvati sve aktivne rezervacije za određenu salu
  *     parameters:
  *       - in: path

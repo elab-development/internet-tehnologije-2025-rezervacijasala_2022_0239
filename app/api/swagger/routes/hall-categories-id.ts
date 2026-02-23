@@ -2,6 +2,8 @@
  * @swagger
  * /api/hall-categories/{id}:
  *   delete:
+ *     tags:
+ *       - HallCategories
  *     summary: Obriši kategoriju sale po ID-u (zahteva MANAGER ili ADMIN rolu)
  *     parameters:
  *       - in: path

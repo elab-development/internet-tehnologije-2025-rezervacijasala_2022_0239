@@ -2,6 +2,8 @@
  * @swagger
  * /api/users/{id}:
  *   put:
+ *     tags:
+ *       - Users
  *     summary: Ažuriraj korisnika po ID-u
  *     parameters:
  *       - in: path
@@ -63,6 +65,8 @@
  *         description: Greška na serveru
  * 
  *   delete:
+ *     tags:
+ *       - Users
  *     summary: Obriši korisnika po ID-u (zahteva ADMIN)
  *     parameters:
  *       - in: path

@@ -2,6 +2,8 @@
  * @swagger
  * /api/dashboard:
  *   get:
+ *     tags:
+ *       - Dashboard
  *     summary: Dohvati statistiku dashboard-a
  *     description: Vraća top 5 najpopularnijih sala i mesečnu statistiku broja rezervacija i prihoda
  *     responses:

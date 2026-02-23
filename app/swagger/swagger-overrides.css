@@ -1,0 +1,35 @@
+/* malo moderniji look bez lomljenja swagger CSS-a */
+
+.swagger-ui .topbar {
+  display: none;
+}
+
+.swagger-ui .info {
+  margin: 0;
+  padding: 8px 0 16px 0;
+}
+
+.swagger-ui .scheme-container {
+  box-shadow: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+}
+
+.swagger-ui .opblock {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.swagger-ui .opblock-summary {
+  padding: 12px;
+}
+
+.swagger-ui .btn.authorize {
+  border-radius: 10px;
+}
+
+.swagger-ui input,
+.swagger-ui select,
+.swagger-ui textarea {
+  border-radius: 10px !important;
+}

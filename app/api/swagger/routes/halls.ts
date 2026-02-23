@@ -2,6 +2,8 @@
  * @swagger
  * /api/halls:
  *   get:
+ *     tags:
+ *       - Halls
  *     summary: Dohvati sve aktivne sale
  *     responses:
  *       200:
@@ -66,6 +68,8 @@
  *                   type: string
  *                   example: Neuspesno
  *   post:
+ *     tags:
+ *       - Halls
  *     summary: Kreiraj novu salu (zahteva MANAGER ili ADMIN rolu)
  *     requestBody:
  *       required: true

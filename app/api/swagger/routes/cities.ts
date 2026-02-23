@@ -2,6 +2,8 @@
  * @swagger
  * /api/cities:
  *   get:
+ *     tags:
+ *       - Cities
  *     summary: Dohvati sve gradove
  *     responses:
  *       200:
@@ -20,6 +22,8 @@
  *                     type: string
  *                     example: Beograd
  *   post:
+ *     tags:
+ *       - Cities
  *     summary: Kreiraj novi grad (zahteva MANAGER ili ADMIN rolu)
  *     requestBody:
  *       required: true
@@ -61,6 +65,8 @@
  * @swagger
  * /api/cities/{id}:
  *   delete:
+ *     tags:
+ *       - Cities
  *     summary: Obriši grad po ID-u (zahteva MANAGER ili ADMIN rolu)
  *     parameters:
  *       - in: path

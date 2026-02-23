@@ -2,6 +2,8 @@
  * @swagger
  * /api/auth:
  *   post:
+ *     tags:
+ *       - Auth
  *     summary: Registracija novog korisnika
  *     requestBody:
  *       required: true
@@ -47,6 +49,8 @@
  * @swagger
  * /api/auth/login:
  *   post:
+ *     tags:
+ *       - Auth
  *     summary: Logovanje korisnika
  *     requestBody:
  *       required: true

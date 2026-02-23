@@ -2,6 +2,8 @@
  * @swagger
  * /api/send-email:
  *   post:
+ *     tags:
+ *       - Email
  *     summary: Pošalji email koristeći Resend servis
  *     requestBody:
  *       required: true
