@@ -1,7 +1,14 @@
+/* swagger-overrides.css */
 /* malo moderniji look bez lomljenja swagger CSS-a */
 
+/* sakrij Swagger-ov built-in topbar (zeleno/ crno zaglavlje) */
 .swagger-ui .topbar {
   display: none;
+}
+
+/* ako OpenAPI spec ima security scheme, Swagger UI će prikazati Authorize — sakrij ga */
+.swagger-ui .btn.authorize {
+  display: none !important;
 }
 
 .swagger-ui .info {
@@ -22,10 +29,6 @@
 
 .swagger-ui .opblock-summary {
   padding: 12px;
-}
-
-.swagger-ui .btn.authorize {
-  border-radius: 10px;
 }
 
 .swagger-ui input,
