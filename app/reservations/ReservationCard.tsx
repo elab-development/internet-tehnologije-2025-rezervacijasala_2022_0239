@@ -111,7 +111,7 @@ export default function ReservationCard({
       } else {
         //Korisnik otkazuje sam sebi
         
-        // Potvrda korisniku
+        /* Potvrda korisniku
         await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -127,14 +127,14 @@ export default function ReservationCard({
               <p>Nadamo se da ćemo sarađivati nekom drugom prilikom.</p>
             `
           }),
-        });
+        }); */
 
         //Obaveštenje menadžeru
         await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            to: "admin@tvoj-sajt.com",
+            to: "01lazniprofil01@gmail.com",
             subject: `SLOBODAN TERMIN: ${reservation.hall.name}`,
             html: `
               <h3>Termin je ponovo slobodan</h3>
