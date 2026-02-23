@@ -108,16 +108,19 @@ export async function POST(req: Request) {
 
 
     await resend.emails.send({
-      from: 'Rezervacije <onboarding@resend.dev>',
+      from: 'Ljubičica - Rezervacije <onboarding@resend.dev>',
       to: reservation.user.email,
       subject: 'Vaš zahtev za rezervaciju je primljen',
       html: `Zdravo, primili smo vaš zahtev za salu <strong>${reservation.hall.name}</strong>. Obavestićemo Vas čim menadžer odobri termin.`
     });
 
+    const manager = await prisma.user.findFirst({
+      where: { role: { name: "MANAGER" } } 
+    });
 
     await resend.emails.send({
-      from: 'Sistem <onboarding@resend.dev>',
-      to: 'tvoj-menadzer-email@gmail.com',
+      from: 'Ljubičica - Rezervacije <onboarding@resend.dev>',
+      to: manager?.email || '01lazniprofil01@gmail.com',
       subject: 'Nova rezervacija čeka odobrenje',
       html: `Stigao je novi zahtev za salu <strong>${reservation.hall.name}</strong>. <a href="http://localhost:3000/reservations">Klikni ovde da odobriš</a>.`
     });

@@ -6,16 +6,12 @@ interface ExchangeRateResponse {
     [key: string]: number;
   };
 }
-
-
-
 export async function GET() {
   const apiKey = process.env.EXCHANGERATE_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json({ error: 'API key is missing' }, { status: 500 });
   }
-
 
   const supported = ["EUR", "RSD", "USD", "CHF", "GBP", "AUD", "CAD", "BAM"];
 
