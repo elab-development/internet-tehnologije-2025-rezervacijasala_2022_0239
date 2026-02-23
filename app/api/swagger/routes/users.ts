@@ -2,6 +2,8 @@
  * @swagger
  * /api/users:
  *   get:
+ *     tags:
+ *       - Users
  *     summary: Dohvati sve korisnike (zahteva ADMIN rolu)
  *     responses:
  *       200:

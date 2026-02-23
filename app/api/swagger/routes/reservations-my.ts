@@ -2,6 +2,8 @@
  * @swagger
  * /api/reservations/my:
  *   get:
+ *     tags:
+ *       - Reservations
  *     summary: Dohvati sve rezervacije trenutno ulogovanog korisnika
  *     responses:
  *       200:

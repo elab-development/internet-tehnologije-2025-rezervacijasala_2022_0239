@@ -2,6 +2,8 @@
  * @swagger
  * /api/halls/{id}:
  *   get:
+ *     tags:
+ *       - Halls
  *     summary: Dohvati salu po ID-u
  *     parameters:
  *       - in: path
@@ -65,6 +67,8 @@
  *       404:
  *         description: Sala nije pronađena
  *   put:
+ *     tags:
+ *       - Halls
  *     summary: Izmeni salu po ID-u (zahteva MANAGER ili ADMIN rolu)
  *     parameters:
  *       - in: path
@@ -170,6 +174,8 @@
  *       404:
  *         description: Sala nije pronađena
  *   delete:
+ *     tags:
+ *       - Halls
  *     summary: Obriši salu po ID-u (zahteva MANAGER ili ADMIN rolu)
  *     parameters:
  *       - in: path

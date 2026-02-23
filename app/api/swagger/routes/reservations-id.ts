@@ -1,7 +1,9 @@
- /**
+/**
  * @swagger
- * /reservations/{id}:
+ * /api/reservations/{id}:
  *   get:
+ *     tags:
+ *       - Reservations
  *     summary: Dohvati rezervaciju po ID-u
  *     parameters:
  *       - in: path

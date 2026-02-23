@@ -2,6 +2,8 @@
  * @swagger
  * /api/reservations:
  *   post:
+ *     tags:
+ *       - Reservations
  *     summary: Kreiraj novu rezervaciju (zahteva USER, MANAGER ili ADMIN rolu)
  *     requestBody:
  *       required: true
@@ -104,6 +106,8 @@
  *                   example: Sala je već rezervisana u tom terminu
  *
  *   get:
+ *     tags:
+ *       - Reservations
  *     summary: Dohvati sve rezervacije (zahteva ADMIN ili MANAGER rolu)
  *     responses:
  *       200:

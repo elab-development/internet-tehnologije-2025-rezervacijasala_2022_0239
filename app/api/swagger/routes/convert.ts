@@ -2,6 +2,8 @@
  * @swagger
  * /api/convert:
  *   get:
+ *     tags:
+ *       - Currency
  *     summary: Dohvati kursne liste valuta (EUR, RSD, USD, CHF, GBP, AUD, CAD, BAM)
  *     responses:
  *       200:

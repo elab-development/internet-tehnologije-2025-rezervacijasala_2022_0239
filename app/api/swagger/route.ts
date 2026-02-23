@@ -16,6 +16,18 @@ const options = {
         url: "http://localhost:3000",
       },
     ],
+    
+    tags: [
+      { name: "Auth", description: "Registracija, login, tokeni" },
+      { name: "Cities", description: "Gradovi / lokacije" },
+      { name: "Halls", description: "Sale i dostupnost" },
+      { name: "Reservations", description: "Rezervacije" },
+      { name: "Currency", description: "Kursna lista / konverzija valuta" },
+      { name: "Dashboard", description: "Statistika i analitika" },
+      { name: "HallCategories", description: "Kategorije sala (CRUD i validacije)" },
+      { name: "Users", description: "Upravljanje korisnicima (admin)" },
+      { name: "Email", description: "Slanje email notifikacija (Resend)" }
+    ],
   },
   apis: swaggerRoutes
 };

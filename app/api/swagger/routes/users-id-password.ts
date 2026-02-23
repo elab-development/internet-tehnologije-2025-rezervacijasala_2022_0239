@@ -2,6 +2,8 @@
  * @swagger
  * /api/users/{id}/password:
  *   put:
+ *     tags:
+ *       - Users
  *     summary: Promeni ili resetuj lozinku korisnika
  *     description: 
  *       - ADMIN može resetovati lozinku bilo kog korisnika bez stare lozinke.
