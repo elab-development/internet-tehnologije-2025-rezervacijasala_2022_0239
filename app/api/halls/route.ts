@@ -2,65 +2,110 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 
-/**
- * GET /api/halls
- * Svi mogu da vide sale
- */
+
+
 export async function GET() {
   try {
     const halls = await prisma.hall.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+      },
+      include: {
+        city: { select: { id: true, name: true } },
+        category: { select: { id: true, name: true } },
+      },
+      orderBy: { id: "desc" },
     });
 
     return NextResponse.json(halls);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch halls" },
-      { status: 500 }
-    );
+    console.error(error);
+    return NextResponse.json({ error: "Neuspesno" }, { status: 500 });
   }
 }
 
-/**
- * POST /api/halls
- * Samo MANAGER ili ADMIN mogu da dodaju salu
- */
 export async function POST(req: Request) {
-  // 🔐 ROLE CHECK (OVO JE NOVO)
-  const roleCheck = requireRole("MANAGER", req);
+  const roleCheck = await requireRole(["MANAGER", "ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   try {
     const body = await req.json();
-    const { name, description, capacity, pricePerEvent } = body;
 
-    if (!name || !description || !capacity || !pricePerEvent) {
-      return NextResponse.json(
-        { error: "Missing fields" },
-        { status: 400 }
-      );
+    const {
+      name,
+      description,
+      capacity,
+      pricePerHour,
+      cityId,
+      categoryId,
+      hasStage,
+      isClosed,
+      imageUrl, 
+    } = body;
+
+
+    if (
+      !name ||
+      capacity === undefined ||
+      pricePerHour === undefined ||
+      cityId === undefined ||
+      categoryId === undefined
+    ) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
+
+    const cap = Number(capacity);
+    const price = Number(pricePerHour);
+    const cId = Number(cityId);
+    const catId = Number(categoryId);
+
+    if (!Number.isFinite(cap) || cap <= 0) {
+      return NextResponse.json({ error: "capacity must be a positive number" }, { status: 400 });
+    }
+    if (!Number.isFinite(price) || price <= 0) {
+      return NextResponse.json({ error: "pricePerHour must be a positive number" }, { status: 400 });
+    }
+    if (!Number.isFinite(cId) || cId <= 0) {
+      return NextResponse.json({ error: "cityId must be a valid number" }, { status: 400 });
+    }
+    if (!Number.isFinite(catId) || catId <= 0) {
+      return NextResponse.json({ error: "categoryId must be a valid number" }, { status: 400 });
+    }
+
+
+    const [city, category] = await Promise.all([
+      prisma.city.findUnique({ where: { id: cId } }),
+      prisma.hallCategory.findUnique({ where: { id: catId } }),
+    ]);
+
+    if (!city) return NextResponse.json({ error: "City not found" }, { status: 404 });
+    if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
+
 
     const hall = await prisma.hall.create({
       data: {
         name,
-        description,
-        capacity: Number(capacity),
-        pricePerEvent: Number(pricePerEvent),
+        description: description || "",
+        capacity: cap,
+        pricePerHour: price,
         isActive: true,
+        hasStage: typeof hasStage === "boolean" ? hasStage : false,
+        isClosed: typeof isClosed === "boolean" ? isClosed : false,
+        cityId: cId,
+        categoryId: catId,
+        imageUrl: imageUrl || null, 
+      },
+      include: {
+        city: { select: { id: true, name: true } },
+        category: { select: { id: true, name: true } },
       },
     });
 
-    return NextResponse.json(
-      {
-        message: "Hall created",
-        hall,
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({ message: "Hall created", hall }, { status: 201 });
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
-      { error: "Failed to create hall" },
+      { error: "Failed to create hall", details: String(error) },
       { status: 500 }
     );
   }

@@ -18,23 +18,49 @@ model User {
   firstName    String
   lastName     String
   email        String   @unique
-  passwordHash String
   phone        String?
+  passwordHash String
   roleId       Int
   role         Role     @relation(fields: [roleId], references: [id])
   reservations Reservation[]
   createdAt    DateTime @default(now())
 }
 
+model City {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  halls Hall[]
+}
+
+model HallCategory {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  halls Hall[]
+}
+
+
 model Hall {
-  id               Int               @id @default(autoincrement())
-  name             String
-  description      String
-  capacity         Int
-  pricePerEvent    Float
-  isActive         Boolean           @default(true)
-  reservations     Reservation[]
-  unavailableDates UnavailableDate[]
+  id           Int     @id @default(autoincrement())
+  name         String
+  description  String
+  capacity     Int
+
+  pricePerHour Float  
+  imageUrl     String?
+  isActive     Boolean @default(true)
+  hasStage     Boolean @default(false)
+  isClosed     Boolean @default(false)
+
+  cityId       Int
+  city         City @relation(fields: [cityId], references: [id], onDelete: Restrict)
+
+  categoryId   Int
+  category     HallCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  reservations Reservation[]
+
+  @@index([cityId])
+  @@index([categoryId])
 }
 
 model Reservation {
@@ -46,14 +72,14 @@ model Reservation {
   startDateTime  DateTime
   endDateTime    DateTime
   numberOfGuests Int
-  status         String
+  status         ReservationStatus @default(PENDING)
   createdAt      DateTime @default(now())
+  @@unique([hallId, startDateTime, endDateTime])
 }
 
-model UnavailableDate {
-  id     Int      @id @default(autoincrement())
-  hallId Int
-  hall   Hall     @relation(fields: [hallId], references: [id])
-  date   DateTime
-  reason String?
+enum ReservationStatus {
+  PENDING
+  ACTIVE
+  CANCELLED
+  COMPLETED
 }

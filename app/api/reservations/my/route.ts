@@ -1,40 +1,37 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuth } from "@/lib/auth";
 
-/**
- * GET /api/reservations/my
- * USER -> samo svoje rezervacije
- */
+
+
 export async function GET(req: Request) {
-  const userIdHeader = req.headers.get("x-user-id");
+  const auth = await getAuth(req);
 
-  if (!userIdHeader) {
+  if (!auth) {
     return NextResponse.json(
-      { error: "Missing user id header" },
+      { error: "Unauthorized" },
       { status: 401 }
     );
   }
 
-  const userId = Number(userIdHeader);
-
-  if (Number.isNaN(userId)) {
-    return NextResponse.json(
-      { error: "Invalid user id" },
-      { status: 400 }
-    );
-  }
-
   const reservations = await prisma.reservation.findMany({
-    where: {
-      userId,
-    },
-    include: {
-      hall: true,
-    },
-    orderBy: {
-      startDateTime: "desc",
-    },
-  });
+  where: {
+    userId: auth.userId,
+  },
+  include: {
+    hall: true,
+    user: { 
+      select: {
+        firstName: true,
+        lastName: true,
+        email: true,
+      }
+    }
+  },
+  orderBy: {
+    startDateTime: "desc",
+  },
+});
 
   return NextResponse.json(reservations);
 }

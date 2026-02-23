@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
 
+
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -20,21 +22,20 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: "Korinsik vec postoji" },
         { status: 409 }
       );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // USER role (pretpostavljamo da postoji u bazi)
     const userRole = await prisma.role.findFirst({
       where: { name: "USER" },
     });
 
     if (!userRole) {
       return NextResponse.json(
-        { error: "Role USER not found" },
+        { error: "Rola nije pronadjena" },
         { status: 500 }
       );
     }
@@ -49,10 +50,10 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ message: "User created", user });
+    return NextResponse.json({ message: "Korisik kreiran", user });
   } catch (error) {
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Greska na serveru" },
       { status: 500 }
     );
   }

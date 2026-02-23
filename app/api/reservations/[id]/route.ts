@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuth } from "@/lib/auth";
 
-export async function GET(
-  _req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
+
+
+
+export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
+  const auth = await getAuth(req); 
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  
   const { id } = await context.params;
   const reservationId = Number(id);
 
@@ -18,8 +23,13 @@ export async function GET(
   const reservation = await prisma.reservation.findUnique({
     where: { id: reservationId },
     include: {
-      user: true,
       hall: true,
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
     },
   });
 
@@ -32,106 +42,95 @@ export async function GET(
 
   return NextResponse.json(reservation);
 }
-/**
- * DELETE /api/reservations/{id}
- * USER -> samo svoju
- * MANAGER / ADMIN -> bilo koju
- */
-export async function DELETE(
-  _req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { id } = await context.params;
-  const reservationId = Number(id);
-
-  if (Number.isNaN(reservationId)) {
-    return NextResponse.json(
-      { error: "Invalid reservation id" },
-      { status: 400 }
-    );
-  }
-
-  // ⬇️ MVP auth simulacija (header)
-  const userRole = _req.headers.get("x-user-role");
-  const userIdHeader = _req.headers.get("x-user-id");
-
-  if (!userRole || !userIdHeader) {
-    return NextResponse.json(
-      { error: "Missing auth headers" },
-      { status: 401 }
-    );
-  }
-
-  const userId = Number(userIdHeader);
-
-  const reservation = await prisma.reservation.findUnique({
-    where: { id: reservationId },
-  });
-
-  if (!reservation) {
-    return NextResponse.json(
-      { error: "Reservation not found" },
-      { status: 404 }
-    );
-  }
-
-  // USER može samo svoju rezervaciju
-  if (userRole === "USER" && reservation.userId !== userId) {
-    return NextResponse.json(
-      { error: "Forbidden" },
-      { status: 403 }
-    );
-  }
-
-  // ⬇️ Umesto brisanja – soft delete
-  const cancelled = await prisma.reservation.update({
-    where: { id: reservationId },
-    data: {
-      status: "CANCELLED",
-    },
-  });
-
-  return NextResponse.json({
-    message: "Reservation cancelled",
-    reservation: cancelled,
-  });
-}
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await getAuth(req);
+  if (!auth) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await context.params;
   const reservationId = Number(id);
 
-  if (Number.isNaN(reservationId)) {
-    return NextResponse.json(
-      { error: "Invalid reservation id" },
-      { status: 400 }
-    );
+  const reservation = await prisma.reservation.findUnique({
+    where: { id: reservationId },
+  });
+
+  if (!reservation) {
+    return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
   }
 
   const body = await req.json();
-  const { startDateTime, endDateTime, numberOfGuests } = body;
+  const { startDateTime, endDateTime, numberOfGuests, status } = body;
 
-  if (!startDateTime || !endDateTime || !numberOfGuests) {
-    return NextResponse.json(
-      { error: "Missing fields" },
-      { status: 400 }
-    );
+  const isPrivileged = auth.role === "ADMIN" || auth.role === "MANAGER";
+
+  if (!isPrivileged && reservation.userId !== auth.userId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // 🔐 MVP auth (header-based)
-  const userRole = req.headers.get("x-user-role");
-  const userIdHeader = req.headers.get("x-user-id");
 
-  if (!userRole || !userIdHeader) {
+  if (!isPrivileged && (startDateTime || endDateTime)) {
+    const diff = new Date(reservation.startDateTime).getTime() - Date.now();
+    if (diff < FIFTEEN_DAYS_MS) {
+      return NextResponse.json(
+        { error: "Too late to modify reservation" },
+        { status: 403 }
+      );
+    }
+  }
+
+
+  if (startDateTime && endDateTime && (status === "ACTIVE" || reservation.status === "ACTIVE")) {
+    const conflict = await prisma.reservation.findFirst({
+      where: {
+        hallId: reservation.hallId,
+        status: "ACTIVE",
+        id: { not: reservationId },
+        startDateTime: { lt: new Date(endDateTime) },
+        endDateTime: { gt: new Date(startDateTime) },
+      },
+    });
+
+    if (conflict) {
+      return NextResponse.json(
+        { error: "Hall already reserved for this period" },
+        { status: 409 }
+      );
+    }
+  }
+
+
+  const updated = await prisma.reservation.update({
+    where: { id: reservationId },
+    data: {
+
+      startDateTime: startDateTime ? new Date(startDateTime) : undefined,
+      endDateTime: endDateTime ? new Date(endDateTime) : undefined,
+      numberOfGuests: numberOfGuests !== undefined ? numberOfGuests : undefined,
+      status: status !== undefined ? status : undefined,
+    },
+  });
+
+  return NextResponse.json(updated);
+}
+
+export async function DELETE(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const auth = await getAuth(req);
+  if (!auth) {
     return NextResponse.json(
-      { error: "Missing auth headers" },
+      { error: "Unauthorized" },
       { status: 401 }
     );
   }
 
-  const userId = Number(userIdHeader);
+  const { id } = await context.params;
+  const reservationId = Number(id);
 
   const reservation = await prisma.reservation.findUnique({
     where: { id: reservationId },
@@ -144,47 +143,31 @@ export async function PUT(
     );
   }
 
-  // USER može samo svoju rezervaciju
-  if (userRole === "USER" && reservation.userId !== userId) {
+  if (
+    auth.role === "USER" &&
+    reservation.userId !== auth.userId
+  ) {
     return NextResponse.json(
       { error: "Forbidden" },
       { status: 403 }
     );
   }
 
-  // 🔄 Provera konflikta (ignorišemo samu sebe)
-  const conflict = await prisma.reservation.findFirst({
-    where: {
-      hallId: reservation.hallId,
-      status: "ACTIVE",
-      id: { not: reservationId },
-      OR: [
-        {
-          startDateTime: { lt: new Date(endDateTime) },
-          endDateTime: { gt: new Date(startDateTime) },
-        },
-      ],
-    },
-  });
+  const diff =
+    new Date(reservation.startDateTime).getTime() -
+    Date.now();
 
-  if (conflict) {
+  if (diff < FIFTEEN_DAYS_MS) {
     return NextResponse.json(
-      { error: "Hall is already reserved for this time" },
-      { status: 409 }
+      { error: "Too late to cancel reservation" },
+      { status: 403 }
     );
   }
 
-  const updated = await prisma.reservation.update({
+  const cancelled = await prisma.reservation.update({
     where: { id: reservationId },
-    data: {
-      startDateTime: new Date(startDateTime),
-      endDateTime: new Date(endDateTime),
-      numberOfGuests,
-    },
+    data: { status: "CANCELLED" },
   });
 
-  return NextResponse.json({
-    message: "Reservation updated",
-    reservation: updated,
-  });
+  return NextResponse.json(cancelled);
 }

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
 
+
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -9,7 +11,7 @@ export async function POST(req: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: "Email i sifra su obavezni" },
         { status: 400 }
       );
     }
@@ -21,7 +23,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: "Neispravni email i sifra" },
         { status: 401 }
       );
     }
@@ -33,13 +35,13 @@ export async function POST(req: Request) {
 
     if (!passwordMatch) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: "Neispravni email i sifra" },
         { status: 401 }
       );
     }
 
     return NextResponse.json({
-      message: "Login successful",
+      message: "Uspesno logovanje",
       user: {
         id: user.id,
         firstName: user.firstName,
@@ -50,7 +52,7 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Greska na serveru" },
       { status: 500 }
     );
   }

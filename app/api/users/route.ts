@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 
-/**
- * GET /api/users
- * ADMIN only
- */
+
+
+
 export async function GET(req: Request) {
-  // 🔐 samo ADMIN
-  const roleCheck = requireRole("ADMIN", req);
+  
+  const roleCheck = await requireRole(["ADMIN"], req);
   if (roleCheck) return roleCheck;
 
   try {
