@@ -104,11 +104,6 @@ Aplikacija radi na: http://localhost:3000
 - Swagger UI: `http://localhost:3000/swagger`
 - OpenAPI JSON: `http://localhost:3000/api/swagger`
 
-### Kako testirati protected rute (BearerAuth)
-1) Pozovi `POST /api/auth/login` i uzmi `token` iz response-a  
-2) Klikni **Authorize** (katanac) u Swagger UI i nalepi token  
-3) Testiraj protected endpoint-e preko **Try it out**
-
 ---
 
 ## Prisma korisne komande
