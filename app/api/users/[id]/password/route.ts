@@ -3,6 +3,9 @@ import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { getAuth } from "@/lib/auth";
 
+
+
+
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }

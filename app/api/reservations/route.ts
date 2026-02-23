@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, getAuth } from "@/lib/auth";
 import { Resend } from 'resend';
 
+
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {

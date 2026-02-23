@@ -7,6 +7,8 @@ interface ExchangeRateResponse {
   };
 }
 
+
+
 export async function GET() {
   const apiKey = process.env.EXCHANGERATE_API_KEY;
 

@@ -1,0 +1,20 @@
+export const swaggerRoutes = [
+  "./app/api/swagger/routes/auth.ts",
+  "./app/api/swagger/routes/cities.ts",
+  "./app/api/swagger/routes/convert.ts",
+  "./app/api/swagger/routes/dashboard.ts",
+  "./app/api/swagger/routes/hall-categories.ts",
+  "./app/api/swagger/routes/hall-categories-id.ts",
+  "./app/api/swagger/routes/halls.ts",
+  "./app/api/swagger/routes/halls-admin.ts",
+  "./app/api/swagger/routes/halls-id.ts",
+  "./app/api/swagger/routes/halls-id-reservations.ts",
+  "./app/api/swagger/routes/halls-id-status.ts",
+  "./app/api/swagger/routes/reservations.ts",
+  "./app/api/swagger/routes/reservations-my.ts",
+  "./app/api/swagger/routes/reservations-id.ts",
+  "./app/api/swagger/routes/send-email.ts",
+  "./app/api/swagger/routes/users.ts",
+  "./app/api/swagger/routes/users-id.ts",
+  "./app/api/swagger/routes/users-id-password.ts"
+];

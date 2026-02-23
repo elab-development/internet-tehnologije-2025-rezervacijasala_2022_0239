@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, getAuth } from "@/lib/auth";
 
+
+
+
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }

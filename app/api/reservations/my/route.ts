@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuth } from "@/lib/auth";
 
 
+
 export async function GET(req: Request) {
   const auth = await getAuth(req);
 
