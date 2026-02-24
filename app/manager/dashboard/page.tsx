@@ -1,6 +1,6 @@
 "use client";
-
 import { useEffect, ReactNode, useState } from "react";
+import { useAuth } from "@/lib/AuthContext"; // Uvezen AuthContext
 import { Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -27,10 +27,20 @@ ChartJS.register(
 );
 
 export default function ManagerDashboard() {
+  const { user } = useAuth(); // Izvlačenje korisnika iz context-a
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Provjera dozvola (samo manager i admin)
+  const isPrivileged = user?.role === "MANAGER" || user?.role === "ADMIN";
+
   useEffect(() => {
+    // Ako nema privilegije, odmah prekini učitavanje
+    if (!isPrivileged) {
+      setLoading(false);
+      return;
+    }
+
     async function fetchStats() {
       try {
         const res = await fetch("/api/dashboard");
@@ -43,8 +53,9 @@ export default function ManagerDashboard() {
       }
     }
     fetchStats();
-  }, []);
+  }, [isPrivileged, user]); // Dodati zavisnosti radi re-evaluacije
 
+  // 1. Prikaz dok se podaci učitavaju
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -53,6 +64,16 @@ export default function ManagerDashboard() {
     );
   }
 
+  // 2. Prikaz ako korisnik nema dozvolu
+  if (!isPrivileged) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <p className="text-lg font-medium text-red-500">Nemaš pristup ovoj stranici.</p>
+      </div>
+    );
+  }
+
+  // 3. Prikaz ako nema podataka nakon učitavanja
   if (!stats) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -96,7 +117,6 @@ export default function ManagerDashboard() {
             </div>
           </div>
 
-          {/* Grid za manja dva grafikona */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* 2. Rezervacije po mjesecu */}
