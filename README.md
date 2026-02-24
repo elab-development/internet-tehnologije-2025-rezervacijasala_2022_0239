@@ -1,10 +1,25 @@
 # Rezervacija sala
 
-Web aplikacija za **pretragu i rezervaciju sala**, razvijena u **Next.js (App Router)** + **React** uz **Prisma ORM** i **MySQL** bazu podataka.
+## Opis aplikacije
+
+**Rezervacija sala** je web aplikacija koja omogućava pregled dostupnih sala i kreiranje rezervacija u izabranom terminu. 
+Korisnik može da pregleda listu aktivnih sala, vidi detalje sale (kapacitet, cena po satu, grad, kategorija, opis i sliku), kao i zauzetost termina.  
+Aplikacija podržava **registraciju i logovanje**, a pristup pojedinim funkcionalnostima je ograničen u zavisnosti od uloge (npr. USER, MANAGER, ADMIN).
+
+Glavne funkcionalnosti:
+- **Sale (Halls):** prikaz aktivnih sala, prikaz detalja sale, pregled rezervacija za salu (zauzeti termini).
+- **Rezervacije (Reservations):** kreiranje rezervacije uz validaciju konflikta termina (sala ne može biti rezervisana u istom periodu), pregled sopstvenih rezervacija, kao i pregled svih rezervacija za administraciju.
+- **Šifrarnici:** upravljanje gradovima i kategorijama sala (MANAGER/ADMIN).
+- **Korisnici:** pregled i administracija korisnika (ADMIN), uključujući ažuriranje podataka i promenu/reset lozinke.
+- **Dashboard:** prikaz statistike (npr. najpopularnije sale i mesečni pregled broja rezervacija i prihoda).
+- **Email notifikacije:** slanje email poruka putem Resend servisa (npr. potvrde ili obaveštenja).
+- **API dokumentacija:** Swagger UI omogućava testiranje API ruta i pregled specifikacije.
+
+Aplikacija koristi **MySQL** bazu podataka, a pristup bazi i migracije se upravljaju kroz **Prisma ORM**.
 
 ---
 
-## Tech Stack
+## Korišćene tehnologije
 - **Next.js** `^16.1.6` (App Router)
 - **React** `19.2.3`
 - **TypeScript**
@@ -23,7 +38,7 @@ Web aplikacija za **pretragu i rezervaciju sala**, razvijena u **Next.js (App Ro
 .
 ├── app/                 # Next.js App Router + API rute (app/api/**)
 ├── components/          # UI komponente
-├── lib/                 # Shared util (npr. prisma client)
+├── lib/                 # Shared util (npr. prisma)
 ├── prisma/              # schema, migrations, seed
 ├── public/              # statički fajlovi
 ├── docker-compose.yml   # Docker compose (MySQL + app)
@@ -186,6 +201,3 @@ Podrazumevani portovi:
 Ugasiti procese koji koriste port ili promeniti port mapping u `docker-compose.yml`.
 
 ---
-
-## License
-Private / School project.
