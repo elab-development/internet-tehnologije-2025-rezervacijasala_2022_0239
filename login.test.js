@@ -1,4 +1,4 @@
-import { validateEmail } from "./lib/util";
+const { validateEmail } = require("./lib/util");
 
 test('Proverava da li email sadrži @ znak', () => {
   expect(validateEmail("lukah@example.com")).toBe(true);
