@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
+import { validateEmail } from "@/lib/util";
 
 
 
@@ -14,6 +15,10 @@ export async function POST(req: Request) {
         { error: "Missing fields" },
         { status: 400 }
       );
+    }
+
+    if (!validateEmail(email)) {
+      return NextResponse.json({ error: "Neispravan format mejla" }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -39,6 +44,9 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
+
+
+
 
     const user = await prisma.user.create({
       data: {
